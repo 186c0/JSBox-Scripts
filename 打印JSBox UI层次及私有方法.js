@@ -15,6 +15,43 @@ $console.info(CodeEditor.invoke("_methodDescription").rawValue())
 
 //navVC.invoke("presentModalViewController:animated",CodeEditor,true)
 
+
+var close = {
+  type: "button",
+  props: {
+    title: "X",
+    bgcolor: $rgba(0, 0, 0, 0)
+  },
+  layout: function (make) {
+    make.right.inset(45)
+    make.top.inset(15)
+  },
+  events: {
+    tapped(sender) {
+      CodeEditor.invoke("dismissModalViewControllerAnimated", true)
+    }
+  }
+}
+
+var save = {
+  type: "button",
+  props: {
+    title: "√",
+    bgcolor: $rgba(0, 0, 0, 0)
+  },
+  layout: function (make) {
+    make.right.inset(10)
+    make.top.inset(15)
+  },
+  events: {
+    tapped(sender) {
+          //CodeEditor.invoke("saveCode")
+    }
+  }
+}
+
+
+
 $ui.render({
   props: {
     id: "v1",
@@ -36,26 +73,11 @@ $ui.render({
     events: {
       tapped: function (t) {
         var navVC = rootVc.invoke("topViewController").invoke("navigationController")
-
         navVC.invoke("presentModalViewController:animated", CodeEditor, true)
-        var button = {
-          type: "button",
-          props: {
-            title: "X",
-            bgcolor: $rgba(0, 0, 0, 0)
-          },
-          layout: function (make) {
-            make.right.inset(10)
-            make.top.inset(15)
-          },
-          events: {
-            tapped(sender) {
-              CodeEditor.invoke("dismissModalViewControllerAnimated", true)
-            }
-          }
-        }
 
-        CodeEditor.invoke("view").rawValue().add(button)
+        var editView = CodeEditor.invoke("view")
+        editView.rawValue().add(close)
+        editView.rawValue().add(save)
 
         $console.info(CodeEditor.invoke("view").rawValue().views)
       }
