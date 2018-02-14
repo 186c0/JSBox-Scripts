@@ -28,16 +28,36 @@ $ui.render({
       bgcolor: $color("#2e5266"),
       titleColor: $color("white")
     },
-    layout: function(t) {
+    layout: function (t) {
       t.bottom.inset(30)
       t.right.inset(20)
       t.width.equalTo(65);
     },
     events: {
-      tapped: function(t) {
+      tapped: function (t) {
         var navVC = rootVc.invoke("topViewController").invoke("navigationController")
 
         navVC.invoke("presentModalViewController:animated", CodeEditor, true)
+        var button = {
+          type: "button",
+          props: {
+            title: "X",
+            bgcolor: $rgba(0, 0, 0, 0)
+          },
+          layout: function (make) {
+            make.right.inset(10)
+            make.top.inset(15)
+          },
+          events: {
+            tapped(sender) {
+              CodeEditor.invoke("dismissModalViewControllerAnimated", true)
+            }
+          }
+        }
+
+        CodeEditor.invoke("view").rawValue().add(button)
+
+        $console.info(CodeEditor.invoke("view").rawValue().views)
       }
     }
   }]
