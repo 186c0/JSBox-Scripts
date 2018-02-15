@@ -86,7 +86,7 @@ function run(t) {
 function renderCode(t) {
   if (t) {
     let e = t.replace(/[\u00A0-\u9999<>\&]/gim, t => "&#" + t.charCodeAt(0) + ";");
-    $("web").html = `<html><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/obsidian.min.css'><style>*{margin:0;padding:0;}pre{font-size:14px;}</style><script src='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js'><\/script><script>hljs.initHighlightingOnLoad();<\/script><body class='hljs'><pre><code class='hljs'>${e}</code></pre</body></html>`;
+    $("web").html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css'><style>* {margin: 0;padding: 0;}pre {font-size: 14px;}</style></head><body class='hljs'><script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><pre><code class='hljs'>${e}</code></pre></body></html>`;
   }
 }
 
