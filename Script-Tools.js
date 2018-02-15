@@ -49,7 +49,7 @@ function printPropsMethods() {
   $input.text({
     type: $kbType.text,
     placeholder: "Input Objective-C Class name",
-    handler: function(text) {
+    handler: function (text) {
       if (text) {
         _propsMethods(text);
       }
@@ -68,7 +68,7 @@ function run(t) {
         tasks: tasks[t],
         body: text
       },
-      handler: function(t) {
+      handler: function (t) {
         $ui.loading(false);
         if (4 === t.data.code) {
           $ui.toast("代码存在语法错误！");
