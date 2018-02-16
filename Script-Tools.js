@@ -73,7 +73,7 @@ function run(t) {
         if (4 === t.data.code) {
           $ui.toast("代码存在语法错误！");
         } else {
-          output = t.data.data.replace(/^"use strict";/g, "");
+          output = t.data.data.replace(`"use strict";`, "");
           renderCode(output);
           let p = (output.length / text.length * 100).toFixed(2);
           $ui.action(`处理前 ${text.length} 字符，处理后 ${output.length} 字符，压缩率 ${p}%`);
@@ -86,7 +86,7 @@ function run(t) {
 function renderCode(t) {
   if (t) {
     let e = t.replace(/[\u00A0-\u9999<>\&]/gim, t => "&#" + t.charCodeAt(0) + ";");
-    $("web").html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css'><style>* {margin: 0;padding: 0;}pre {font-size: 14px;}</style></head><body class='hljs'><script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><pre><code class='hljs'>${e}</code></pre></body></html>`;
+    $("web").html = `<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css'><style>* {margin: 0;padding: 0;}pre {font-size: 14px;}</style></head><body class='hljs'><script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><pre><code class='hljs'>${e}</code></pre></body></html>`;
   }
 }
 
@@ -112,12 +112,12 @@ let rootVC = keyWindow.invoke("rootViewController");
 
 let text = ($context.safari ? $context.safari.items.source : null) || $context.text || ($context.data ? $context.data.string : null) || $clipboard.text || "",
   output = "";
-let style = `pre{white-space:pre-wrap;white-space:-moz-pre-wrap;white-space:-pre-wrap;white-space:-o-pre-wrap;word-wrap:break-word;}`;
+let wrap = `pre{white-space:pre-wrap;white-space:-moz-pre-wrap;white-space:-pre-wrap;white-space:-o-pre-wrap;word-wrap:break-word;}`;
 let codeView = {
   type: "web",
   props: {
     id: "web",
-    style: style
+    style: wrap
   },
   layout: t => {
     t.top.inset(-3);
@@ -133,7 +133,8 @@ let btn_comp = new Button(
     m.width.equalTo(65);
   },
   e => {
-    mode = "Compress", run(mode);
+    mode = "Compress";
+    run(mode);
   }
 );
 
@@ -147,7 +148,8 @@ let btn_format = new Button(
     m.width.equalTo(65);
   },
   e => {
-    mode = "Decompress", run(mode);
+    mode = "Decompress";
+    run(mode);
   }
 );
 
