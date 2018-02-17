@@ -86,7 +86,7 @@ function run(t) {
 function renderCode(t) {
   if (t) {
     let e = t.replace(/[\u00A0-\u9999<>\&]/gim, t => "&#" + t.charCodeAt(0) + ";");
-    $("web").html = `<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css'><style>* {margin: 0;padding: 0;}pre {font-size: 14px;}</style></head><body class='hljs'><script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><pre><code class='hljs'>${e}</code></pre></body></html>`;
+    $("web").html = `<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css'><style>*{margin: 0;padding: 0;}pre{font-size: 14px;}${wrap}</style></head><div class='hljs'><script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><pre><code class='hljs'>${e}</code></pre></div></html>`;
   }
 }
 
@@ -116,8 +116,7 @@ let wrap = `pre{white-space:pre-wrap;white-space:-moz-pre-wrap;white-space:-pre-
 let codeView = {
   type: "web",
   props: {
-    id: "web",
-    style: wrap
+    id: "web"
   },
   layout: t => {
     t.top.inset(-3);
