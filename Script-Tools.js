@@ -3,9 +3,9 @@ UglifyJS + Babel 压缩格式化,复制或从分享面板运行
 暂不支持转换async
 by https://t.me/Eva1ent
 */
-function install(name, string) {
+function install(fileName, string) {
   $addin.save({
-    name: name,
+    name: fileName,
     data: $data({
       string: string
     })
@@ -18,20 +18,39 @@ function install(name, string) {
 }
 
 function getName() {
-  let name;
+  let fileName;
   if ($env.app == $app.env || void 0 === $context.data) {
-    name = new Date().toISOString() + '.js';
+    fileName = new Date().toISOString();
   } else {
-    name = $context.data.fileName.substring(0, $context.data.fileName.length - 3) + mode + "ed";
+    fileName = $context.data.fileName.substring(0, $context.data.fileName.length - 3) + mode + "ed";
   }
-  return name;
+  return fileName;
 }
 
 function share(string) {
-  $share.sheet([getName(), $data({
-    "string": output
-  })]);
+  let fileName = getName();
+  if (mode === 'more') {
+    makePDF(fileName, html);
+  } else {
+    $share.sheet([fileName + '.html', $data({
+      "string": html
+    })]);
+  }
 }
+
+function makePDF(fileName, html) {
+  $pdf.make({
+    html: html,
+    pageSize: $pageSize.A1,
+    handler: function (resp) {
+      let data = resp.data;
+      if (data) {
+        $share.sheet([fileName + '.pdf', data]);
+      }
+    }
+  });
+}
+
 
 function _views() {
   renderCode(keyWindow.invoke("recursiveDescription").rawValue().toString());
@@ -86,7 +105,8 @@ function run(t) {
 function renderCode(t) {
   if (t) {
     let e = t.replace(/[\u00A0-\u9999<>\&]/gim, t => "&#" + t.charCodeAt(0) + ";");
-    $("web").html = `<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css'><style>*{margin: 0;padding: 0;}pre{font-size: 14px;}${wrap}</style></head><div class='hljs'><script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><pre><code class='hljs'>${e}</code></pre></div></html>`;
+    html = `<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css'><style>*{margin: 0;padding: 0;}pre{font-size: 14px;}${wrap}</style></head><body class='hljs'><script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><pre><code class='hljs'>${e}</code></pre></body></html>`;
+    $("web").html = html;
   }
 }
 
@@ -109,9 +129,9 @@ let UIApp = $objc("UIApplication"),
   SApp = UIApp.invoke("sharedApplication"),
   keyWindow = SApp.invoke("keyWindow");
 let rootVC = keyWindow.invoke("rootViewController");
-
 let text = ($context.safari ? $context.safari.items.source : null) || $context.text || ($context.data ? $context.data.string : null) || $clipboard.text || "",
-  output = "";
+  output = "",
+  html = "";
 let wrap = `pre{white-space:pre-wrap;white-space:-moz-pre-wrap;white-space:-pre-wrap;white-space:-o-pre-wrap;word-wrap:break-word;}`;
 let codeView = {
   type: "web",
@@ -194,7 +214,9 @@ let btn_more = new Button(
     $ui.menu({
       items: Options.map(i => i.name),
       handler: (e, i) => {
+        mode = 'more';
         Options[i].func();
+        $("btn_share").userInteractionEnabled = true;
       }
     });
   }
