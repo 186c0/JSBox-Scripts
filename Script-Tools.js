@@ -30,50 +30,14 @@ function getName() {
 function share(string) {
   let fileName = getName();
   if (mode === 'more') {
-    makePDF(fileName, html);
-  } else {
     $share.sheet([fileName + '.html', $data({
       "string": html
     })]);
+  } else if (string) {
+    $share.sheet([fileName + '.js', $data({
+      "string": string
+    })]);
   }
-}
-
-function makePDF(fileName, html) {
-  $pdf.make({
-    html: html,
-    pageSize: $pageSize.A1,
-    handler: function (resp) {
-      let data = resp.data;
-      if (data) {
-        $share.sheet([fileName + '.pdf', data]);
-      }
-    }
-  });
-}
-
-
-function _views() {
-  renderCode(keyWindow.invoke("recursiveDescription").rawValue().toString());
-}
-
-function _viewControllers() {
-  renderCode(rootVC.invoke("_printHierarchy").rawValue().toString());
-}
-
-function _propsMethods(className) {
-  renderCode($objc(className).invoke("_methodDescription").rawValue().toString());
-}
-
-function printPropsMethods() {
-  $input.text({
-    type: $kbType.text,
-    placeholder: "Input Objective-C Class name",
-    handler: function (text) {
-      if (text) {
-        _propsMethods(text);
-      }
-    }
-  });
 }
 
 function run(t) {
@@ -125,10 +89,34 @@ function Button(id, title, bgcolor, layout, tapped) {
   };
 }
 
+function _views() {
+  renderCode(keyWindow.invoke("recursiveDescription").rawValue().toString());
+}
+
+function _viewControllers() {
+  renderCode(rootVC.invoke("_printHierarchy").rawValue().toString());
+}
+
+function _propsMethods(className) {
+  renderCode($objc(className).invoke("_methodDescription").rawValue().toString());
+}
+
+function printPropsMethods() {
+  $input.text({
+    type: $kbType.text,
+    placeholder: "Input Objective-C Class name",
+    handler: function (text) {
+      if (text) {
+        _propsMethods(text);
+      }
+    }
+  });
+}
+
 let UIApp = $objc("UIApplication"),
   SApp = UIApp.invoke("sharedApplication"),
-  keyWindow = SApp.invoke("keyWindow");
-let rootVC = keyWindow.invoke("rootViewController");
+  keyWindow = SApp.invoke("keyWindow"),
+  rootVC = keyWindow.invoke("rootViewController");
 let text = ($context.safari ? $context.safari.items.source : null) || $context.text || ($context.data ? $context.data.string : null) || $clipboard.text || "",
   output = "",
   html = "";
