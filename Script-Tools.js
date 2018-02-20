@@ -204,7 +204,6 @@ let btn_more = new Button(
       handler: (e, i) => {
         mode = 'more';
         Options[i].func();
-        $("btn_share").userInteractionEnabled = true;
       }
     });
   }
@@ -256,7 +255,4 @@ if (text) {
   output = text;
   renderCode(text);
   $("btn_save").bgcolor = $color("tint");
-} else {
-  $("btn_save").userInteractionEnabled = false;
-  $("btn_share").userInteractionEnabled = false;
 }
