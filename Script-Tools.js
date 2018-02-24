@@ -56,7 +56,7 @@ function run(t) {
         if (4 === t.data.code) {
           $ui.toast("代码存在语法错误！");
         } else {
-          output = t.data.data.replace(`"use strict";`, "");
+          output = t.data.data;
           renderCode(output);
           let p = (output.length / text.length * 100).toFixed(2);
           $ui.action(`处理前 ${text.length} 字符，处理后 ${output.length} 字符，压缩率 ${p}%`);
