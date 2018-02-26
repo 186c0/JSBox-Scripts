@@ -94,7 +94,7 @@ function run(t) {
 
 function renderCode(code, style) {
   if (code) {
-    $ui.toast("Rendering...")
+    $ui.toast("Rendering...");
     let e = code.replace(/[\u00A0-\u9999<>\&]/gim, t => "&#" + t.charCodeAt(0) + ";").replace(/    |\t/g, WhiteSpace);
     html = `<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css'><style>*{margin: 0;padding: 0;}pre{font-size: 12px;}${wrap}${style}</style></head><body class='hljs'><script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><pre><code class='hljs'>${e}</code></pre></body></html>`;
     $("web").html = html;
@@ -134,14 +134,17 @@ function receivingDebugData() {
           let data = resp.data;
           let timestamp = data.timestamp;
           if (timestamp) {
-            $ui.toast("Receiving...", 2);
+            //$ui.toast("Receiving...", 2);
             let debugData = `UIViewControllers: ${data.viewControllers}
+
             UIViews: ${data.views}`;
             if (debugData !== output) {
               renderCode(debugData);
+            } else {
+              $ui.toast("Keeping...", 2);
             }
           } else {
-            $ui.toast("Waiting...", 1);
+            $ui.toast("Waiting...", 2);
           }
         }
       });

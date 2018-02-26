@@ -1,5 +1,7 @@
 // 注意:本拓展运行期间可能会造成JSBox不稳定
 
+$addin.delete("tmp");
+
 function debug() {
   let json = {
     timestamp: new Date().toISOString(),
@@ -40,6 +42,7 @@ function start() {
 function stop() {
   timer.invalidate();
   $ui.toast("stopped");
+  $addin.delete("tmp");
 }
 $ui.menu({
   items: Options.map(i => i.name),
