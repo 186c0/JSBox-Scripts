@@ -3,6 +3,18 @@ UglifyJS + Babel 压缩格式化,复制或从分享面板运行
 暂不支持转换async
 by https://t.me/Eva1ent
 */
+// 填写调试端地址
+const url = "http://10.0.0.5/";
+//设定分享文件类型 html, pdf
+const shareType = 'pdf';
+//自定义空白间距
+const WhiteSpace = `&nbsp;&nbsp;`;
+
+$app.debug = true;
+String.prototype.delExtension = function () {
+  return this.lastIndexOf('.') === -1 ? this + '' : this.slice(0, this.lastIndexOf('.'));
+};
+
 function install(fileName, string) {
   $addin.save({
     name: fileName,
@@ -18,21 +30,36 @@ function install(fileName, string) {
 }
 
 function getName() {
-  let fileName;
   if ($env.app == $app.env || void 0 === $context.data) {
-    fileName = new Date().toISOString();
+    return new Date().toISOString();
   } else {
-    fileName = $context.data.fileName.substring(0, $context.data.fileName.length - 3) + mode + "ed";
+    return $context.data.fileName.delExtension() + ' ' + mode + "ed";
   }
-  return fileName;
+}
+
+function makePDF(fileName, html) {
+  $ui.loading = true;
+  $ui.toast("正在生成PDF,请等待...")
+  $pdf.make({
+    html: html,
+    pageSize: $pageSize.A1,
+    handler: function (resp) {
+      var data = resp.data;
+      if (data) {
+        $share.sheet([fileName + '.pdf', data]);
+      }
+    }
+  });
 }
 
 function share(string) {
   let fileName = getName();
   if (mode === 'more') {
-    $share.sheet([fileName + '.html', $data({
-      "string": html
-    })]);
+    if (shareType === 'pdf') {
+      makePDF(fileName, html);
+    } else {
+      $share.sheet([fileName + '.html', html]);
+    }
   } else if (string) {
     $share.sheet([fileName + '.js', $data({
       "string": string
@@ -66,10 +93,10 @@ function run(t) {
   }
 }
 
-function renderCode(t) {
-  if (t) {
-    let e = t.replace(/[\u00A0-\u9999<>\&]/gim, t => "&#" + t.charCodeAt(0) + ";");
-    html = `<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css'><style>*{margin: 0;padding: 0;}pre{font-size: 14px;}${wrap}</style></head><body class='hljs'><script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><pre><code class='hljs'>${e}</code></pre></body></html>`;
+function renderCode(code, style) {
+  if (code) {
+    let e = code.replace(/[\u00A0-\u9999<>\&]/gim, t => "&#" + t.charCodeAt(0) + ";").replace(/    |\t/g, WhiteSpace);
+    html = `<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css'><style>*{margin: 0;padding: 0;}pre{font-size: 12px;}${wrap}${style}</style></head><body class='hljs'><script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><pre><code class='hljs'>${e}</code></pre></body></html>`;
     $("web").html = html;
   }
 }
@@ -85,8 +112,39 @@ function Button(id, title, bgcolor, layout, tapped) {
   };
   this.layout = layout;
   this.events = {
-    tapped: tapped
+    tapped: e => {
+      if (timer) {
+        timer.invalidate();
+        timer = null;
+        $ui.toast("stopped");
+      }
+      tapped();
+    }
   };
+}
+
+function receivingDebugData() {
+  timer = $timer.schedule({
+    interval: 0.55,
+    handler: function () {
+      $http.get({
+        url: url + "download?path=%2Ftmp.js",
+        handler: function (resp) {
+          let data = resp.data;
+          let timestamp = data.timestamp;
+          $ui.toast("timestamp");
+          if (timestamp) {
+            renderCode(`Timestamp: ${timestamp}
+            UIViewControllers: ${data.viewControllers}
+            UIViews: ${data.views}`);
+            $ui.toast("Receiving... " + data.timestamp, 1);
+          } else {
+            $ui.toast("Waiting...", 1);
+          }
+        }
+      });
+    }
+  });
 }
 
 function _views() {
@@ -113,6 +171,7 @@ function printPropsMethods() {
   });
 }
 
+let timer;
 let UIApp = $objc("UIApplication"),
   SApp = UIApp.invoke("sharedApplication"),
   keyWindow = SApp.invoke("keyWindow"),
@@ -225,15 +284,20 @@ $ui.render({
 });
 
 let Options = [{
-  name: "打印UIView层次",
-  func: _views
-}, {
-  name: "打印viewControllers",
-  func: _viewControllers
-}, {
-  name: "查看class属性和方法",
-  func: printPropsMethods
-}];
+    name: "打印UIViews",
+    func: _views
+  }, {
+    name: "打印viewControllers",
+    func: _viewControllers
+  }, {
+    name: 'ReceivingDebugData',
+    func: receivingDebugData
+  },
+  {
+    name: "查看OC类属性和方法",
+    func: printPropsMethods
+  }
+];
 
 let mode = "",
   tasks = {
