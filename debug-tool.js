@@ -12,7 +12,7 @@ function debug() {
       string: JSON.stringify(json)
     })
   });
-  $ui.toast("running...");
+  // $ui.toast("running...");
 }
 
 let UIApp = $objc("UIApplication"),
@@ -32,7 +32,7 @@ let Options = [{
 
 function start() {
   timer = $timer.schedule({
-    interval: 0.5,
+    interval: 0.9,
     handler: debug
   });
 }

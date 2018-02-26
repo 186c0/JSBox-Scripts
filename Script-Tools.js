@@ -39,7 +39,7 @@ function getName() {
 
 function makePDF(fileName, html) {
   $ui.loading = true;
-  $ui.toast("正在生成PDF,请等待...")
+  $ui.toast("正在生成PDF,请等待...");
   $pdf.make({
     html: html,
     pageSize: $pageSize.A1,
