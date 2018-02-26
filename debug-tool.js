@@ -44,7 +44,6 @@ function stop() {
 $ui.menu({
   items: Options.map(i => i.name),
   handler: (e, i) => {
-    mode = 'more';
     Options[i].func();
   }
 });
