@@ -117,8 +117,10 @@ function Button(id, title, bgcolor, layout, tapped) {
     tapped: e => {
       if (timer) {
         timer.invalidate();
-        timer = null;
-        $ui.toast("stopped");
+        timer = false;
+        $delay(0.5, () => {
+          $ui.toast("stopped");
+        });
       }
       tapped();
     }
