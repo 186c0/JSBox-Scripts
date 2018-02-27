@@ -4,11 +4,12 @@ UglifyJS + Babel 压缩格式化,复制或从分享面板运行
 by https://t.me/Eva1ent
 */
 // 填写调试端地址
-const url = "http://192.168.1.103/";
+const URL = "http://10.0.0.5/";
 //设定分享文件类型 html, pdf
-const shareType = 'pdf';
+const SHARETYPE = 'pdf';
 //自定义空白间距
-const WhiteSpace = `&nbsp;&nbsp;`;
+const WHITESPACE = `&nbsp;&nbsp;`;
+const PDF_PAGESIZE = $pageSize.A1;
 
 $app.debug = true;
 String.prototype.delExtension = function () {
@@ -42,7 +43,7 @@ function makePDF(fileName, html) {
   $ui.toast("正在生成PDF,请等待...");
   $pdf.make({
     html: html,
-    pageSize: $pageSize.A1,
+    pageSize: PDF_PAGESIZE,
     handler: function (resp) {
       var data = resp.data;
       if (data) {
@@ -55,7 +56,7 @@ function makePDF(fileName, html) {
 function share(string) {
   let fileName = getName();
   if (mode === 'more') {
-    if (shareType === 'pdf') {
+    if (SHARETYPE === 'pdf') {
       makePDF(fileName, html);
     } else {
       $share.sheet([fileName + '.html', html]);
@@ -95,7 +96,7 @@ function run(t) {
 function renderCode(code, style) {
   if (code) {
     $ui.toast("Rendering...");
-    let e = code.replace(/[\u00A0-\u9999<>\&]/gim, t => "&#" + t.charCodeAt(0) + ";").replace(/    |\t/g, WhiteSpace);
+    let e = code.replace(/[\u00A0-\u9999<>\&]/gim, t => "&#" + t.charCodeAt(0) + ";").replace(/    |\t/g, WHITESPACE);
     html = `<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css'><style>*{margin: 0;padding: 0;}pre{font-size: 12px;}${wrap}${style}</style></head><body class='hljs'><script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><pre><code class='hljs'>${e}</code></pre></body></html>`;
     $("web").html = html;
     output = code;
@@ -129,7 +130,7 @@ function receivingDebugData() {
     interval: 1,
     handler: function () {
       $http.get({
-        url: url + "download?path=%2Ftmp.js",
+        url: URL + "download?path=%2Ftmp.js",
         handler: function (resp) {
           let data = resp.data;
           let timestamp = data.timestamp;
