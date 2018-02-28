@@ -26,7 +26,6 @@ function install(fileName, string) {
   $ui.toast("已导入", 1.2);
   $delay(2, () => {
     $context.close();
-    $app.close();
   });
 }
 
