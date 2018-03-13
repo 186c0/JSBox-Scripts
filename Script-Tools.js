@@ -4,7 +4,8 @@ UglifyJS + Babel 压缩格式化,复制或从分享面板运行
 by https://t.me/Eva1ent
 */
 // 填写调试端地址
-const URL = "http://10.0.0.5/";
+const port = 5588;
+const URL = "http://192.168.1.111:" + port;
 //设定分享文件类型 html, pdf
 const SHARETYPE = 'pdf';
 //自定义空白间距
@@ -96,7 +97,7 @@ function renderCode(code, style) {
   if (code) {
     $ui.toast("Rendering...");
     let e = code.replace(/[\u00A0-\u9999<>\&]/gim, t => "&#" + t.charCodeAt(0) + ";").replace(/    |\t/g, WHITESPACE);
-    html = `<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css'><style>*{margin: 0;padding: 0;}pre{font-size: 12px;}${wrap}${style}</style></head><body class='hljs'><script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><pre><code class='hljs'>${e}</code></pre></body></html>`;
+    html = `<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css'><style>*{margin: 0;padding: 0;}pre{font-size: 14px;}${wrap}${style}</style></head><body class='hljs'><script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><pre><code class='hljs'>${e}</code></pre></body></html>`;
     $("web").html = html;
     output = code;
   }
@@ -128,10 +129,10 @@ function Button(id, title, bgcolor, layout, tapped) {
 
 function receivingDebugData() {
   timer = $timer.schedule({
-    interval: 1,
+    interval: 0.6,
     handler: function () {
       $http.get({
-        url: URL + "download?path=%2Ftmp.js",
+        url: URL + "/download?path=%2Fdata.json",
         handler: function (resp) {
           let data = resp.data;
           let timestamp = data.timestamp;
