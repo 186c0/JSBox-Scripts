@@ -8,8 +8,9 @@
 ![IMG_0122.PNG](https://i.loli.net/2018/02/25/5a92598bc40b4.png)
 
 实时打印UIView层级(demo) 
+
 ![ ](https://github.com/186c0/JSBox-Scripts/raw/master/demo.gif)
 
-https://ipfs.io/ipfs/Qme8xaSXV1rYykJgrvFyTxVTbJ1PSozoLKMmYva3nuxe9A?1.mp4 
+更新: 换用 WEB服务器 API，现在调试插件运行时不会再往脚本列表写入 tmp.js ，想要调试任意拓展的 UI 直接 require("debug-tool"); 即可。
 
-https://ipfs.io/ipfs/QmbhmRYi62wBN7aSzkcLdPrGepscth9RAhPUk1z7wuLU6v?4.mp4
+[ScreenRecording](https://i1n.me/ScreenRecording_x264.mp4)
