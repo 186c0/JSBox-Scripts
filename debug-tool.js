@@ -39,7 +39,3 @@ $ui.menu({
   items: Object.keys(Options),
   handler: i => Options[i]()
 });
-
-module.exports = {
-  Options: debug
-};
