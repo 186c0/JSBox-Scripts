@@ -13,4 +13,4 @@
 
 更新: 换用 WEB服务器 API，现在调试插件运行时不会再往脚本列表写入 tmp.js ，想要调试任意拓展的 UI 直接 require("debug-tool"); 即可。
 
-[ScreenRecording](https://i1n.me/ScreenRecording_x264.mp4)
+[ScreenRecording](http://ou201w6db.bkt.clouddn.com/ScreenRecording_x264.mp4)
