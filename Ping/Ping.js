@@ -64,7 +64,6 @@ $ui.render({
       props: {
         id: 'ipInfo',
         font: $font(16),
-        text: '美国洛杉矶',
         color: $color("#777"),
         align: $align.center,
         autoFontSize: true
