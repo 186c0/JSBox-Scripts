@@ -175,7 +175,6 @@ function startPing(ip) {
       update(rtt);
     },
     didTimeout: function (summary) {
-      $ui.toast('Timeout', 1);
       loss++;
     },
     didFail: function (error) {
