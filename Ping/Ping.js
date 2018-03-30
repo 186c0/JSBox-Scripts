@@ -219,16 +219,16 @@ function drawLineGraph(view, ctx) {
   ctx.saveGState();
   ctx.setAlpha(0.9);
   ctx.strokeColor = $color("#08a4df");
-  ctx.moveToPoint(-10, H / 1.125 - rtts[0] * ratio);
+  ctx.moveToPoint(-10, H / 1.2 - rtts[0] * ratio);
   ctx.setLineWidth(4);
   ctx.setLineCap(1);
   ctx.setLineJoin(1);
   ctx.setShadow($size(1, 1), 3.3, $color("#999"));
   for (let i = 1; i < rtts.length; ++i) {
     x = i * 10 + 10;
-    ctx.addLineToPoint(x - offsetX, H / 1.125 - rtts[i] * ratio);
+    ctx.addLineToPoint(x - offsetX, H / 1.2 - rtts[i] * ratio);
   }
-  if (max * ratio > H / 1.125 - 40) {
+  if (max * ratio > H / 1.2 - 40) {
     ratio *= 0.9;
     // $ui.toast(ratio);
   }
@@ -241,10 +241,10 @@ function drawMinMaxLine(view, ctx) {
   ctx.setAlpha(0.6);
   ctx.setLineWidth(2);
   ctx.strokeColor = $color("#ccc");
-  ctx.moveToPoint(0, H / 1.125 - min * ratio);
-  ctx.addLineToPoint(W, H / 1.125 - min * ratio);
-  ctx.moveToPoint(0, H / 1.125 - max * ratio);
-  ctx.addLineToPoint(W, H / 1.125 - max * ratio);
+  ctx.moveToPoint(0, H / 1.2 - min * ratio);
+  ctx.addLineToPoint(W, H / 1.2 - min * ratio);
+  ctx.moveToPoint(0, H / 1.2 - max * ratio);
+  ctx.addLineToPoint(W, H / 1.2 - max * ratio);
   ctx.strokePath();
   ctx.restoreGState();
 }
@@ -254,8 +254,8 @@ function drawAvgLine(view, ctx) {
   ctx.setAlpha(0.5);
   ctx.setLineWidth(2);
   ctx.strokeColor = $color("#8ce69c");
-  ctx.moveToPoint(0, H / 1.125 - avg * ratio);
-  ctx.addLineToPoint(W, H / 1.125 - avg * ratio);
+  ctx.moveToPoint(0, H / 1.2 - avg * ratio);
+  ctx.addLineToPoint(W, H / 1.2 - avg * ratio);
   ctx.strokePath();
   ctx.restoreGState();
 }
@@ -266,7 +266,7 @@ function drawStdRect(view, ctx) {
   ctx.saveGState();
   ctx.setAlpha(0.1);
   ctx.fillColor = $color("#8ce69c");
-  ctx.fillRect($rect(0, (H / 1.125 - avg * ratio) - stddev * ratio * 0.5, W, stddev * ratio));
+  ctx.fillRect($rect(0, (H / 1.2 - avg * ratio) - stddev * ratio * 0.5, W, stddev * ratio));
   ctx.restoreGState();
 }
 
