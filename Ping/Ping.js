@@ -138,7 +138,7 @@ $ui.render({
     }
   ],
 });
-$delay(0, _ => $('input').text = $detector.link($clipboard.text)[0].replace(/(http|https):\/\//i, ''));
+$('input').text = $detector.link($clipboard.text)[0].replace(/(http|https):\/\//i, '');
 let cvs = $("canvas");
 
 function testPing(host) {
