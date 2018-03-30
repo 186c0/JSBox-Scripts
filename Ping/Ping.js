@@ -138,6 +138,7 @@ $ui.render({
     }
   ],
 });
+$delay(0, _ => $('input').text = $detector.link($clipboard.text)[0].replace(/(http|https):\/\//i, ''));
 let cvs = $("canvas");
 
 function testPing(host) {
@@ -162,6 +163,7 @@ function testPing(host) {
 function startPing(ip) {
   isRunning = true;
   $('button').title = 'Stop';
+  $("input").alpha = 0;
   $network.startPinging({
     host: ip,
     timeout: timeout,
@@ -178,7 +180,7 @@ function startPing(ip) {
       loss++;
     },
     didFail: function (error) {
-      $ui.toast(error);
+      $ui.action(error);
     },
     didFailToSendPing: function (response) {
       $ui.toast('FailToSendPing');
@@ -201,6 +203,7 @@ function getIpInfo(ip) {
 function stopPing() {
   isRunning = false;
   $('button').title = 'Ping';
+  $("input").alpha = 0.96;
   $network.stopPinging();
 }
 
@@ -213,6 +216,7 @@ function reset() {
   cvs.runtimeValue().invoke("setNeedsDisplay");
   $("info").text = '';
   $("ip").text = '';
+  $("ipInfo").text = '';
 }
 
 function drawLineGraph(view, ctx) {
