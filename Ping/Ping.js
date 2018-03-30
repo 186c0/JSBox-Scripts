@@ -1,3 +1,4 @@
+$network.stopPinging();
 const width = $device.info.screen.width;
 const period = 0.2;
 const timeout = 2.0;
@@ -48,12 +49,28 @@ $ui.render({
       type: "label",
       props: {
         id: 'ip',
-        font: $font(20),
+        font: $font(18),
         color: $color("#777"),
         align: $align.center
       },
       layout: m => {
         m.bottom.equalTo($('info').top).inset(10);
+        m.width.equalTo(width);
+        m.height.equalTo(30);
+      }
+    },
+    {
+      type: "label",
+      props: {
+        id: 'ipInfo',
+        font: $font(16),
+        text: '美国洛杉矶',
+        color: $color("#777"),
+        align: $align.center,
+        autoFontSize: true
+      },
+      layout: m => {
+        m.bottom.equalTo($('ip').top).inset(0);
         m.width.equalTo(width);
         m.height.equalTo(30);
       }
@@ -137,6 +154,7 @@ function testPing(host) {
       if (hostIp) {
         $('ip').text = hostIp;
         startPing(hostIp);
+        getIpInfo(hostIp);
       }
     },
   });
@@ -166,6 +184,18 @@ function startPing(ip) {
     },
     didFailToSendPing: function (response) {
       $ui.toast('FailToSendPing');
+    }
+  });
+}
+
+function getIpInfo(ip) {
+  $http.get({
+    url: "http://freeapi.ipip.net/" + ip,
+    handler: function (resp) {
+      let data = resp.data;
+      if (data instanceof Array) {
+        $('ipInfo').text = data.join(' ');
+      }
     }
   });
 }
