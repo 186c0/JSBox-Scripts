@@ -138,7 +138,7 @@ $ui.render({
     }
   ],
 });
-$('input').text = $detector.link($clipboard.text)[0].replace(/(http|https):\/\//i, '');
+// $('input').text = $detector.link($clipboard.text)[0].replace(/(http|https):\/\//i, '');
 let cvs = $("canvas");
 
 function testPing(host) {
@@ -163,7 +163,9 @@ function testPing(host) {
 function startPing(ip) {
   isRunning = true;
   $('button').title = 'Stop';
-  $("input").alpha = 0;
+  if (H < 230) {
+    $("input").alpha = 0;
+  }
   $network.startPinging({
     host: ip,
     timeout: timeout,
