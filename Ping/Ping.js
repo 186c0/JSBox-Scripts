@@ -1,17 +1,19 @@
+$app.tips("开启 shadowrocket 时使用本工具可能会造成数据包发送失败");
 $network.stopPinging();
 const width = $device.info.screen.width;
 const period = 0.2;
 const timeout = 2.0;
 let W, H;
-let ratio = 10;
+let ratio = 20;
 let hostIp = void 0;
 let rtts = [];
 let x = 0;
 let min = 0;
 let max = 0;
 let avg = 0;
+let send = 0;
 let rec = 0;
-let loss = 0;
+let stddev = 0;
 let offsetX = 0;
 let isRunning = false;
 
@@ -22,7 +24,7 @@ Array.prototype.min = function () {
   return Math.min(...this);
 };
 Array.prototype.avg = function () {
-  return this.reduce((partial, value) => (partial + value)) / this.length;
+  return this.reduce((p, v) => (p + v)) / this.length;
 };
 
 $app.keyboardToolbarEnabled = true;
@@ -148,15 +150,18 @@ function testPing(host) {
     period: 1.0,
     payloadSize: 1,
     ttl: 49,
-    didReceiveReply: function (summary) {
+    didReceiveReply: summary => {
       hostIp = summary.host;
       $network.stopPinging();
       if (hostIp) {
         $('ip').text = hostIp;
-        startPing(hostIp);
         getIpInfo(hostIp);
+        startPing(hostIp);
       }
     },
+    didReceiveUnexpectedReply: _ => actionErr(_),
+    didFail: _ => actionErr(_),
+    didFailToSendPing: _ => actionErr(_),
   });
 }
 
@@ -172,21 +177,15 @@ function startPing(ip) {
     period: period,
     payloadSize: 24,
     ttl: 49,
-    didReceiveReply: function (summary) {
-      rec++;
+    didReceiveReply: summary => {
       let rtt = parseFloat((summary.rtt * 1000).toFixed(1));
       rtts.push(rtt);
       update(rtt);
+      rec++;
     },
-    didTimeout: function (summary) {
-      loss++;
-    },
-    didFail: function (error) {
-      $ui.action(error);
-    },
-    didFailToSendPing: function (response) {
-      $ui.toast('FailToSendPing');
-    }
+    didSendPing: summary => send++,
+    didFail: err => $ui.toast(err + ''),
+    didFailToSendPing: _ => $ui.toast('FailToSendPing')
   });
 }
 
@@ -202,22 +201,27 @@ function getIpInfo(ip) {
   });
 }
 
+function actionErr(err) {
+  stopPing();
+  reset();
+  $ui.action(err + '');
+}
+
 function stopPing() {
   isRunning = false;
+  $network.stopPinging();
   $('button').title = 'Ping';
   $("input").alpha = 0.96;
-  $network.stopPinging();
 }
 
 function reset() {
   rtts = [];
   hostIp = void 0;
   offsetX = 0;
-  ratio = 10;
-  avg = 0;
+  ratio = 20;
   cvs.runtimeValue().invoke("setNeedsDisplay");
-  $("info").text = '';
   $("ip").text = '';
+  $("info").text = '';
   $("ipInfo").text = '';
 }
 
@@ -268,7 +272,7 @@ function drawAvgLine(view, ctx) {
 
 function drawStdRect(view, ctx) {
   let deviations = rtts.map(x => x - avg);
-  let stddev = Math.sqrt(deviations.map(i => i * i).reduce((x, y) => x + y) / (rtts.length - 1));
+  stddev = Math.sqrt(deviations.map(i => i * i).reduce((x, y) => x + y) / (rtts.length - 1));
   ctx.saveGState();
   ctx.setAlpha(0.1);
   ctx.fillColor = $color("#8ce69c");
@@ -284,7 +288,7 @@ function update(rtt) {
   }
   min = rtts.min();
   max = rtts.max();
-  let lossRate = loss / (loss + rec);
+  let lossRate = (send - rec) / send;
   cvs.runtimeValue().invoke("setNeedsDisplay");
-  $("info").text = `NOW: ${rtt} AVG:${avg.toFixed(1)}  MIN: ${min}  MAX: ${max}  LOSS: ${(lossRate*100).toFixed(2)}%`;
+  $("info").text = `STD: ${stddev.toFixed(1)} AVG:${avg.toFixed(1)}  MIN: ${min}  MAX: ${max}  LOSS: ${(lossRate*100).toFixed(2)}%`;
 }
