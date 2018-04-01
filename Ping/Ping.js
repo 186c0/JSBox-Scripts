@@ -1,4 +1,4 @@
-$app.tips("开启 shadowrocket 时使用本工具可能会造成数据包发送失败");
+$app.tips("使用本工具时请暂时关闭shadowrocket ，否则可能无法Ping通");
 $network.stopPinging();
 const width = $device.info.screen.width;
 const period = 0.2;
@@ -10,7 +10,6 @@ let rtts = [];
 let x = 0;
 let min = 0;
 let max = 0;
-let avg = 0;
 let send = 0;
 let rec = 0;
 let stddev = 0;
