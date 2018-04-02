@@ -5,7 +5,7 @@ const height = $device.info.screen.height;
 const period = 0.2;
 const timeout = 2.0;
 let W, H;
-let ratio = 20;
+let ratio = 10;
 let hostIp = void 0;
 let rtts = [];
 let x = 0;
@@ -39,12 +39,13 @@ $ui.render({
         font: $font("ArialRoundedMTBold", 12),
         color: $color("#666"),
         bgcolor: $rgba(233, 233, 233, 0.8),
-        align: $align.center
+        align: $align.center,
+        autoFontSize: true
       },
       layout: m => {
         m.bottom.inset(0);
         m.width.equalTo(width);
-        m.height.equalTo(22);
+        m.height.equalTo(23);
       }
     },
     {
@@ -133,8 +134,11 @@ $ui.render({
         tapped: function () {
           let input = $("input").text;
           let host = input.replace(/^\s*|\s*$/g, '');
-          testPing(host);
-          isRunning && stopPing();
+          if (!isRunning) {
+            testPing(host);
+          } else {
+            stopPing();
+          }
         }
       }
     }
@@ -184,7 +188,7 @@ function startPing(ip) {
       rec++;
     },
     didSendPing: summary => send++,
-    didFail: err => $ui.toast(err + ''),
+    didFail: err => $ui.toast('Error'),
     didFailToSendPing: _ => $ui.toast('FailToSendPing')
   });
 }
@@ -204,7 +208,7 @@ function getIpInfo(ip) {
 function actionErr(err) {
   stopPing();
   reset();
-  $ui.action(err + '');
+  $ui.action(err);
 }
 
 function stopPing() {
@@ -218,8 +222,8 @@ function reset() {
   rtts = [];
   hostIp = void 0;
   offsetX = 0;
-  ratio = 20;
-  cvs.runtimeValue().invoke("setNeedsDisplayInRect", $rect(0, 0, width, height));
+  ratio = 10;
+  cvs.runtimeValue().invoke("setNeedsDisplay");
   $("ip").text = '';
   $("info").text = '';
   $("ipInfo").text = '';
@@ -289,6 +293,9 @@ function update(rtt) {
   min = rtts.min();
   max = rtts.max();
   let lossRate = (send - rec) / send;
-  cvs.runtimeValue().invoke("setNeedsDisplayInRect", $rect(0, 0, width, height));
-  $("info").text = `STD: ${stddev.toFixed(1)} AVG:${avg.toFixed(1)}  MIN: ${min}  MAX: ${max}  LOSS: ${(lossRate*100).toFixed(2)}%`;
+  cvs.runtimeValue().invoke("setNeedsDisplayInRect", $rect(0, 20, width, height - 50));
+  $thread.background({
+    delay: 0,
+    handler: _ => $("info").text = `NOW:${rtt.toFixed(1)} STD: ${stddev.toFixed(1)} AVG:${avg.toFixed(1)}  MIN: ${min}  MAX: ${max}  LOSS: ${(lossRate*100).toFixed(2)}%`
+  });
 }
