@@ -84,11 +84,12 @@ $ui.render({
         draw: function (view, ctx) {
           W = view.frame.width;
           H = view.frame.height;
+          let base = H / 1.2;
           if (rtts.length > 0) {
-            drawMinMaxLine(view, ctx);
-            drawAvgLine(view, ctx);
-            drawStdRect(view, ctx);
-            drawLineGraph(view, ctx);
+            drawMinMaxLine(view, ctx, base);
+            drawAvgLine(view, ctx, base);
+            drawStdRect(view, ctx, base);
+            drawLineGraph(view, ctx, base);
           }
         },
       },
@@ -229,20 +230,20 @@ function reset() {
   $("ipInfo").text = '';
 }
 
-function drawLineGraph(view, ctx) {
+function drawLineGraph(view, ctx, base) {
   ctx.saveGState();
   ctx.setAlpha(0.9);
   ctx.strokeColor = $color("#08a4df");
-  ctx.moveToPoint(-10, H / 1.2 - rtts[0] * ratio);
+  ctx.moveToPoint(-10, base - rtts[0] * ratio);
   ctx.setLineWidth(4);
   ctx.setLineCap(1);
   ctx.setLineJoin(1);
   ctx.setShadow($size(1, 1), 3.3, $color("#999"));
   for (let i = 1; i < rtts.length; ++i) {
     x = i * 10 + 10;
-    ctx.addLineToPoint(x - offsetX, H / 1.2 - rtts[i] * ratio);
+    ctx.addLineToPoint(x - offsetX, base - rtts[i] * ratio);
   }
-  if (max * ratio > H / 1.2 - 40) {
+  if (max * ratio > base - 40) {
     ratio *= 0.9;
     // $ui.toast(ratio);
   }
@@ -250,37 +251,37 @@ function drawLineGraph(view, ctx) {
   ctx.restoreGState();
 }
 
-function drawMinMaxLine(view, ctx) {
+function drawMinMaxLine(view, ctx, base) {
   ctx.saveGState();
   ctx.setAlpha(0.6);
   ctx.setLineWidth(2);
   ctx.strokeColor = $color("#ccc");
-  ctx.moveToPoint(0, H / 1.2 - min * ratio);
-  ctx.addLineToPoint(W, H / 1.2 - min * ratio);
-  ctx.moveToPoint(0, H / 1.2 - max * ratio);
-  ctx.addLineToPoint(W, H / 1.2 - max * ratio);
+  ctx.moveToPoint(0, base - min * ratio);
+  ctx.addLineToPoint(W, base - min * ratio);
+  ctx.moveToPoint(0, base - max * ratio);
+  ctx.addLineToPoint(W, base - max * ratio);
   ctx.strokePath();
   ctx.restoreGState();
 }
 
-function drawAvgLine(view, ctx) {
+function drawAvgLine(view, ctx, base) {
   ctx.saveGState();
   ctx.setAlpha(0.5);
   ctx.setLineWidth(2);
   ctx.strokeColor = $color("#8ce69c");
-  ctx.moveToPoint(0, H / 1.2 - avg * ratio);
-  ctx.addLineToPoint(W, H / 1.2 - avg * ratio);
+  ctx.moveToPoint(0, base - avg * ratio);
+  ctx.addLineToPoint(W, base - avg * ratio);
   ctx.strokePath();
   ctx.restoreGState();
 }
 
-function drawStdRect(view, ctx) {
+function drawStdRect(view, ctx, base) {
   let deviations = rtts.map(x => x - avg);
   stddev = Math.sqrt(deviations.map(i => i * i).reduce((x, y) => x + y) / (rtts.length - 1));
   ctx.saveGState();
   ctx.setAlpha(0.1);
   ctx.fillColor = $color("#8ce69c");
-  ctx.fillRect($rect(0, (H / 1.2 - avg * ratio) - stddev * ratio * 0.5, W, stddev * ratio));
+  ctx.fillRect($rect(0, (base - avg * ratio) - stddev * ratio * 0.5, W, stddev * ratio));
   ctx.restoreGState();
 }
 
@@ -296,6 +297,6 @@ function update(rtt) {
   cvs.runtimeValue().invoke("setNeedsDisplayInRect", $rect(0, 20, width, height - 50));
   $thread.background({
     delay: 0,
-    handler: _ => $("info").text = `NOW:${rtt.toFixed(1)} STD: ${stddev.toFixed(1)} AVG:${avg.toFixed(1)}  MIN: ${min}  MAX: ${max}  LOSS: ${(lossRate*100).toFixed(2)}%`
+    handler: _ => $("info").text = `NOW:${rtt.toFixed(1)} STD: ${stddev.toFixed(1)} AVG:${avg.toFixed(1)}  MIN: ${min}  MAX: ${max}  LOSS: ${(lossRate * 100).toFixed(2)}%`
   });
 }
