@@ -2,6 +2,7 @@ $app.tips("使用本工具时请暂时关闭shadowrocket ，否则可能无法Pi
 $network.stopPinging();
 const width = $device.info.screen.width;
 const height = $device.info.screen.height;
+const scale = $device.info.screen.scale;
 const period = 0.2;
 const timeout = 2.0;
 let W, H;
@@ -84,7 +85,8 @@ $ui.render({
         draw: function (view, ctx) {
           W = view.frame.width;
           H = view.frame.height;
-          let base = H / 1.2;
+          let base = H / 1.25;
+          drawGrid(view, ctx, base);
           if (rtts.length > 0) {
             drawMinMaxLine(view, ctx, base);
             drawAvgLine(view, ctx, base);
@@ -142,6 +144,25 @@ $ui.render({
           }
         }
       }
+    },
+    {
+      type: "label",
+      props: {
+        id: 'floor',
+        text: '0',
+        font: $font(12),
+        color: $color("#777"),
+        align: $align.left,
+      }
+    },
+    {
+      type: "label",
+      props: {
+        id: 'ceiling',
+        font: $font(12),
+        color: $color("#777"),
+        align: $align.left,
+      }
     }
   ],
 });
@@ -173,6 +194,9 @@ function testPing(host) {
 function startPing(ip) {
   isRunning = true;
   $('button').title = 'Stop';
+  // $ui.action();
+  $('floor').frame = $rect(1, H / 1.25, 60, 12);
+  $('ceiling').frame = $rect(1, 50, 60, 12);
   if (H < 230) {
     $("input").alpha = 0;
   }
@@ -230,6 +254,20 @@ function reset() {
   $("ipInfo").text = '';
 }
 
+function drawGrid(view, ctx, base) {
+  let range = Math.floor(base - 50);
+  let offset = scale == 3 ? 0.5 : 0.25;
+  ctx.saveGState();
+  ctx.strokeColor = $color("#ccc");
+  ctx.setLineWidth(1 / scale);
+  for (let i = 0, j = Math.ceil(range / 50); i < j; i++) {
+    ctx.moveToPoint(0, base - i * 50 - offset);
+    ctx.addLineToPoint(W, base - i * 50 - offset);
+  }
+  ctx.strokePath();
+  ctx.restoreGState();
+}
+
 function drawLineGraph(view, ctx, base) {
   ctx.saveGState();
   ctx.setAlpha(0.9);
@@ -243,7 +281,7 @@ function drawLineGraph(view, ctx, base) {
     x = i * 10 + 10;
     ctx.addLineToPoint(x - offsetX, base - rtts[i] * ratio);
   }
-  if (max * ratio > base - 40) {
+  if (max * ratio > base - 50) {
     ratio *= 0.9;
     // $ui.toast(ratio);
   }
@@ -297,6 +335,9 @@ function update(rtt) {
   cvs.runtimeValue().invoke("setNeedsDisplayInRect", $rect(0, 20, width, height - 50));
   $thread.background({
     delay: 0,
-    handler: _ => $("info").text = `NOW:${rtt.toFixed(1)} STD: ${stddev.toFixed(1)} AVG:${avg.toFixed(1)}  MIN: ${min}  MAX: ${max}  LOSS: ${(lossRate * 100).toFixed(2)}%`
+    handler: _ => {
+      $("info").text = `NOW:${rtt.toFixed(1)} STD: ${stddev.toFixed(1)} AVG:${avg.toFixed(1)} MIN: ${min} MAX: ${max} LOSS: ${(lossRate * 100).toFixed(2)}%`;
+      $('ceiling').text = Math.floor(((H / 1.25) - 50) / ratio);
+    }
   });
 }
