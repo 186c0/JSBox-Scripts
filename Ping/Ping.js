@@ -45,7 +45,7 @@ $ui.render({
       },
       layout: m => {
         m.bottom.inset(0);
-        m.width.equalTo(width);
+        m.left.right.inset(0);
         m.height.equalTo(23);
       }
     },
@@ -59,7 +59,7 @@ $ui.render({
       },
       layout: m => {
         m.bottom.equalTo($('info').top).inset(10);
-        m.width.equalTo(width);
+        m.left.right.inset(0);
         m.height.equalTo(30);
       }
     },
@@ -74,7 +74,7 @@ $ui.render({
       },
       layout: m => {
         m.bottom.equalTo($('ip').top).inset(0);
-        m.width.equalTo(width);
+        m.left.right.inset(0);
         m.height.equalTo(30);
       }
     },
@@ -220,7 +220,7 @@ function startPing(ip) {
 
 function getIpInfo(ip) {
   $http.get({
-    url: "http://freeapi.ipip.net/" + ip,
+    url: "https://freeapi.ipip.net/" + ip,
     handler: function (resp) {
       let data = resp.data;
       if (data instanceof Array) {
