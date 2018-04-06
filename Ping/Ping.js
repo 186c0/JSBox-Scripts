@@ -333,11 +333,6 @@ function update(rtt) {
   max = rtts.max();
   let lossRate = (send - rec) / send;
   cvs.runtimeValue().invoke("setNeedsDisplayInRect", $rect(0, 20, width, height - 50));
-  $thread.background({
-    delay: 0,
-    handler: _ => {
-      $("info").text = `NOW:${rtt.toFixed(1)} STD: ${stddev.toFixed(1)} AVG:${avg.toFixed(1)} MIN: ${min} MAX: ${max} LOSS: ${(lossRate * 100).toFixed(2)}%`;
-      $('ceiling').text = Math.floor(((H / 1.25) - 50) / ratio);
-    }
-  });
+  $("info").text = `NOW:${rtt.toFixed(1)} STD: ${stddev.toFixed(1)} AVG:${avg.toFixed(1)} MIN: ${min} MAX: ${max} LOSS: ${(lossRate * 100).toFixed(2)}%`;
+  $('ceiling').text = Math.floor(((H / 1.25) - 50) / ratio);
 }
