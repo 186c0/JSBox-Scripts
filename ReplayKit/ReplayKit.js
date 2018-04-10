@@ -15,7 +15,7 @@ function navigationController() {
 }
 
 function start() {
-  $ui.toast("开始录制");
+  $ui.toast("开始录制", 0.5);
   recorder.invoke('startRecordingWithMicrophoneEnabled:handler:', 'NO', null);
 }
 
@@ -52,7 +52,7 @@ if (!isAvailable) {
     interval: 0.1,
     handler: function (resp) {
       let {x, y, z} = resp.acceleration;
-      if ((Math.abs(x) + Math.abs(y) + Math.abs(z)) > 0.5) {
+      if ((Math.abs(x) + Math.abs(y) + Math.abs(z)) > 1.2) {
         $motion.stopUpdates();
         stop();
       }
