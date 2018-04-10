@@ -1,5 +1,5 @@
 // https://t.me/Eva1ent
-$app.tips('用法:运行开始录屏，摇晃设备结束录屏\n在需要录制的拓展中 require 此脚本');
+// 用法:在需要录制的拓展中 require 此脚本, 运行开始录屏, 摇晃设备结束录屏
 const W = $device.info.screen.width;
 const H = $device.info.screen.height;
 let NSBundle = $objc('NSBundle');
