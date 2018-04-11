@@ -1,7 +1,8 @@
 let NSBundle = $objc('NSBundle');
 NSBundle.invoke('bundleWithPath:', '/System/Library/Frameworks/ARKit.framework').invoke('load');
 NSBundle.invoke('bundleWithPath:', '/System/Library/Frameworks/SpriteKit.framework').invoke('load');
-
+let rootViewController = $objc("UIApplication").invoke("sharedApplication").invoke("keyWindow").invoke("rootViewController");
+let topNavigationController = () => rootViewController.invoke("topViewController.navigationController");
 
 const w = $device.info.screen.width;
 const h = $device.info.screen.height;
@@ -38,14 +39,28 @@ function createARSceneView(x, y, w, h) {
     return v;
 }
 
-let sceneview = createARSceneView(0, 0, w, h - 77);
+let sceneview = createARSceneView(0, 0, w, h);
 sceneview.invoke('setScene', scene);
 // $ui.alert(sceneview.invoke('debugOptions'));
-let rootVC = $objc("UIApplication").invoke("sharedApplication").invoke("keyWindow").invoke("rootViewController");
-let navVC = rootVC.invoke("topViewController.navigationController");
+
+let btn = {
+    type: "button",
+    props: {
+        bgcolor: $rgba(255, 255, 255, 0)
+    },
+    layout: make => {
+        make.top.left.inset(0);
+        make.size.equalTo($size(100, 55));
+    },
+    events: {
+        tapped: () => myVC.invoke("dismissViewControllerAnimated:completion:", 'YES', null)
+    }
+};
+
 let myVC = UIViewController.invoke("alloc.init");
 myVC.invoke("view").invoke("addSubview", sceneview);
-navVC.invoke("pushViewController:animated", myVC, false);
+sceneview.rawValue().add(btn);
+topNavigationController().invoke("presentViewController:animated:completion:", myVC, 'NO', null);
 let configuration = ARWorldTrackingConfiguration.invoke('alloc.init');
 configuration.invoke('setPlaneDetection:', ARPlaneDetectionHorizontal);
 configuration.invoke('setWorldAlignment:', ARWorldAlignmentGravityAndHeading);

@@ -5,14 +5,12 @@ const H = $device.info.screen.height;
 let NSBundle = $objc('NSBundle');
 NSBundle.invoke('bundleWithPath:', '/System/Library/Frameworks/ReplayKit.framework').invoke('load');
 let rootViewController = $objc("UIApplication").invoke("sharedApplication").invoke("keyWindow").invoke("rootViewController");
+let topNavigationController = () => rootViewController.invoke("topViewController.navigationController");
 let RPScreenRecorder = $objc("RPScreenRecorder");
 let recorder = RPScreenRecorder.invoke('sharedRecorder');
 let isAvailable = recorder.invoke('isAvailable');
 // let volume = $system.volume;
 
-function navigationController() {
-  return rootViewController.invoke("topViewController.navigationController");
-}
 
 function start() {
   $ui.toast("开始录制", 0.5);
@@ -25,20 +23,18 @@ function stop() {
     let btn = {
       type: "button",
       props: {
-        bgcolor: $rgba(0, 0, 0, 0.01),
+        bgcolor: $rgba(255, 255, 255, 0.001),
       },
       layout: make => {
         make.top.left.inset(0);
         make.size.equalTo($size(100, 55));
       },
       events: {
-        tapped: function () {
-          vc.invoke("dismissModalViewControllerAnimated", 'YES');
-        }
+        tapped: () => vc.invoke("dismissViewControllerAnimated:completion:", 'YES', null)
       }
     };
     vc.invoke('view').rawValue().add(btn);
-    navigationController().invoke("presentModalViewController:animated", vc, 'YES');
+    topNavigationController().invoke("presentViewController:animated:completion:", vc, 'YES', null);
   });
   recorder.invoke('stopRecordingWithHandler:', handler);
 }
