@@ -9,12 +9,27 @@ let topNavigationController = () => rootViewController.invoke("topViewController
 let RPScreenRecorder = $objc("RPScreenRecorder");
 let recorder = RPScreenRecorder.invoke('sharedRecorder');
 let isAvailable = recorder.invoke('isAvailable');
+let isRecording = () => recorder.invoke('isRecording');
 // let volume = $system.volume;
 
 
 function start() {
   $ui.toast("开始录制", 0.5);
   recorder.invoke('startRecordingWithMicrophoneEnabled:handler:', 'NO', null);
+  $motion.startUpdates({
+    interval: 0.1,
+    handler: function (resp) {
+      let {
+        x,
+        y,
+        z
+      } = resp.acceleration;
+      if ((Math.abs(x) + Math.abs(y) + Math.abs(z)) > 1.2) {
+        $motion.stopUpdates();
+        stop();
+      }
+    }
+  });
 }
 
 function stop() {
@@ -39,22 +54,11 @@ function stop() {
   recorder.invoke('stopRecordingWithHandler:', handler);
 }
 
-if (!isAvailable) {
-  $ui.toast('不支持');
-  // $app.close();
-} else {
-  start();
-  $motion.startUpdates({
-    interval: 0.1,
-    handler: function (resp) {
-      let {x, y, z} = resp.acceleration;
-      if ((Math.abs(x) + Math.abs(y) + Math.abs(z)) > 1.2) {
-        $motion.stopUpdates();
-        stop();
-      }
-    }
-  });
+function main() {
+  isAvailable ? isRecording() ? stop() : start() : $ui.toast("不支持");
 }
+
+main();
 
 // $app.tips('按音量 + 键开始录屏，音量 - 键结束录屏');
 // let timer = $timer.schedule({
