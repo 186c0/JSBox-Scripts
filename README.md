@@ -40,4 +40,4 @@
 
 [JSBox-ScreenRecorder](https://xteko.com/redir?name=ReplayKit&url=https%3A%2F%2Fraw.githubusercontent.com%2F186c0%2FJSBox-Scripts%2Fmaster%2FReplayKit%2FReplayKit.js&icon=icon_035.png&types=1&version=1.0&author=Eva1ent)
 
-![](https://i.loli.net/2018/04/10/5accae0b339b5.png) ![](https://i.loli.net/2018/04/10/5accae0b31d6e.png) ![](https://i.loli.net/2018/04/10/5accae0b23d8d.png) 
+![](https://i.loli.net/2018/04/10/5accae0b339b5.png)  ![](https://i.loli.net/2018/04/10/5accae0b23d8d.png) 
