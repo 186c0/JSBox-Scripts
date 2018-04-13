@@ -181,7 +181,9 @@ function testPing(host) {
 function startPing(ip) {
   isRunning = true;
   $('button').title = 'Stop';
-  addLeftScaleLabel();
+  if (leftScaleLabels.length == 0) {
+    addLeftScaleLabel();
+  }
   if (H < 230) {
     $("input").alpha = 0;
   }

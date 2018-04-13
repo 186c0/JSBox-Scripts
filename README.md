@@ -20,11 +20,15 @@
 
 带图形化展示的网络延迟测试工具
 
-![](https://i.loli.net/2018/04/07/5ac8ba9a07f20.png) ![2.png](https://i.loli.net/2018/04/07/5ac8ba9a081eb.png)
+
+
+![](https://i.loli.net/2018/04/14/5ad0e361f393a.gif) ![2.png](https://i.loli.net/2018/04/07/5ac8ba9a081eb.png)
 
 
 
+更新记录:
 
+- 完善左侧刻度线
 
 ------
 
