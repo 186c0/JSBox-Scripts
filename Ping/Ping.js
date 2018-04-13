@@ -13,6 +13,7 @@ let ratio = 10;
 let hostIp = void 0;
 let rtts = [];
 let x = 0;
+let avg = 0;
 let min = 0;
 let max = 0;
 let send = 0;
@@ -288,7 +289,7 @@ function drawLineGraph(view, ctx, base) {
   }
   if (max * ratio > base - 60) {
     ratio *= 0.9;
-    $ui.toast(ratio);
+    // $ui.toast(ratio);
   }
   ctx.strokePath();
   ctx.restoreGState();
