@@ -1,11 +1,14 @@
+'use strict';
 $app.tips("使用本工具时请暂时关闭shadowrocket ，否则可能无法Ping通");
 $network.stopPinging();
 const width = $device.info.screen.width;
 const height = $device.info.screen.height;
 const scale = $device.info.screen.scale;
-const period = 0.2;
-const timeout = 2.0;
-let W, H;
+let offsets = [0, 0.25, 0.5];
+let W, H, base, drawRange;
+let period = 0.2;
+let timeout = 2.0;
+
 let ratio = 10;
 let hostIp = void 0;
 let rtts = [];
@@ -16,6 +19,7 @@ let send = 0;
 let rec = 0;
 let stddev = 0;
 let offsetX = 0;
+let leftScaleLabels = [];
 let isRunning = false;
 
 Array.prototype.max = function () {
@@ -34,6 +38,7 @@ $ui.render({
     title: 'Ping'
   },
   views: [{
+      id: 'view',
       type: "label",
       props: {
         id: 'info',
@@ -85,7 +90,8 @@ $ui.render({
         draw: function (view, ctx) {
           W = view.frame.width;
           H = view.frame.height;
-          let base = H / 1.25;
+          base = H / 1.25;
+          drawRange = Math.floor(base - 50);
           drawGrid(view, ctx, base);
           if (rtts.length > 0) {
             drawMinMaxLine(view, ctx, base);
@@ -145,29 +151,9 @@ $ui.render({
         }
       }
     },
-    {
-      type: "label",
-      props: {
-        id: 'floor',
-        text: '0',
-        font: $font(12),
-        color: $color("#777"),
-        align: $align.left,
-      }
-    },
-    {
-      type: "label",
-      props: {
-        id: 'ceiling',
-        font: $font(12),
-        color: $color("#777"),
-        align: $align.left,
-      }
-    }
   ],
 });
 // $('input').text = $detector.link($clipboard.text)[0].replace(/(http|https):\/\//i, '');
-let cvs = $("canvas");
 
 function testPing(host) {
   $network.startPinging({
@@ -194,9 +180,7 @@ function testPing(host) {
 function startPing(ip) {
   isRunning = true;
   $('button').title = 'Stop';
-  // $ui.action();
-  $('floor').frame = $rect(1, H / 1.25, 60, 12);
-  $('ceiling').frame = $rect(1, 50, 60, 12);
+  addLeftScaleLabel();
   if (H < 230) {
     $("input").alpha = 0;
   }
@@ -248,21 +232,42 @@ function reset() {
   hostIp = void 0;
   offsetX = 0;
   ratio = 10;
-  cvs.runtimeValue().invoke("setNeedsDisplay");
+  $('canvas').runtimeValue().invoke("setNeedsDisplay");
   $("ip").text = '';
   $("info").text = '';
   $("ipInfo").text = '';
 }
 
+class LeftScaleLabel {
+  constructor(id, y) {
+    this.type = "label";
+    this.props = {
+      id: id,
+      frame: $rect(1, y, 60, 12),
+      font: $font(12),
+      color: $color("#777"),
+      align: $align.left,
+    };
+  }
+}
+
+function addLeftScaleLabel() {
+  for (let i = 0; i <= drawRange / 50; i++) {
+    let id = 'scaleLabel' + i;
+    let label = new LeftScaleLabel(id, Math.floor(base - i * 50));
+    $('canvas').add(label);
+    leftScaleLabels.push(id);
+  }
+}
+
 function drawGrid(view, ctx, base) {
-  let range = Math.floor(base - 50);
-  let offset = scale == 3 ? 0.5 : 0.25;
+  let offset = offsets[scale - 1];
   ctx.saveGState();
   ctx.strokeColor = $color("#ccc");
   ctx.setLineWidth(1 / scale);
-  for (let i = 0, j = Math.ceil(range / 50); i < j; i++) {
-    ctx.moveToPoint(0, base - i * 50 - offset);
-    ctx.addLineToPoint(W, base - i * 50 - offset);
+  for (let i = 0; i < Math.ceil(drawRange / 50); i++) {
+    ctx.moveToPoint(0, base - Math.floor(i * 50) - offset);
+    ctx.addLineToPoint(W, base - Math.floor(i * 50) - offset);
   }
   ctx.strokePath();
   ctx.restoreGState();
@@ -281,9 +286,9 @@ function drawLineGraph(view, ctx, base) {
     x = i * 10 + 10;
     ctx.addLineToPoint(x - offsetX, base - rtts[i] * ratio);
   }
-  if (max * ratio > base - 50) {
+  if (max * ratio > base - 60) {
     ratio *= 0.9;
-    // $ui.toast(ratio);
+    $ui.toast(ratio);
   }
   ctx.strokePath();
   ctx.restoreGState();
@@ -332,7 +337,7 @@ function update(rtt) {
   min = rtts.min();
   max = rtts.max();
   let lossRate = (send - rec) / send;
-  cvs.runtimeValue().invoke("setNeedsDisplayInRect", $rect(0, 20, width, height - 50));
+  $("canvas").runtimeValue().invoke("setNeedsDisplayInRect", $rect(0, 20, width, height - 50));
   $("info").text = `NOW:${rtt.toFixed(1)} STD: ${stddev.toFixed(1)} AVG:${avg.toFixed(1)} MIN: ${min} MAX: ${max} LOSS: ${(lossRate * 100).toFixed(2)}%`;
-  $('ceiling').text = Math.floor(((H / 1.25) - 50) / ratio);
+  leftScaleLabels.forEach(i => $(i).text = Math.floor((base - $(i).frame.y) / ratio));
 }
