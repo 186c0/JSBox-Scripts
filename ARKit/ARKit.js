@@ -18,19 +18,28 @@ const ARSCNDebugOptionShowFeaturePoints = 1 << 1;
 
 let UIViewController = $objc('UIViewController');
 
-let SKView = $objc('SKView');
-let SKScene = $objc('SKScene');
-let SKShapeNode = $objc('SKShapeNode');
-let SKPhysicsBody = $objc('SKPhysicsBody');
-let ARSKView = $objc("ARSKView");
+// let SKView = $objc('SKView');
+// let SKScene = $objc('SKScene');
+// let SKShapeNode = $objc('SKShapeNode');
+// let SKPhysicsBody = $objc('SKPhysicsBody');
+// let ARSKView = $objc("ARSKView");
 
 let SCNScene = $objc('SCNScene');
+let SCNBox = $objc("SCNBox");
+let SCNNode = $objc("SCNNode");
 let ARSCNView = $objc('ARSCNView');
 let ARWorldTrackingConfiguration = $objc('ARWorldTrackingConfiguration');
 let ARSession = $objc('ARSession');
 let ARPlaneAnchor = $objc('ARPlaneAnchor');
-
 let scene = SCNScene.invoke('scene');
+let node = createCubeNode(0.1, 0.1, 0.1, 0);
+scene.invoke('rootNode').invoke('addChildNode:', node);
+
+function createCubeNode(parm) {
+    let cube = SCNBox.invoke('boxWithWidth:height:length:chamferRadius:', ...arguments);
+    let node = SCNNode.invoke('nodeWithGeometry:', cube);
+    return node;
+}
 
 function createARSceneView(x, y, w, h) {
     let v = ARSCNView.invoke('alloc').invoke('initWithFrame:', $rect(x, y, w, h));
@@ -56,6 +65,7 @@ let btn = {
         tapped: () => myVC.invoke("dismissViewControllerAnimated:completion:", 'YES', null)
     }
 };
+
 
 let myVC = UIViewController.invoke("alloc.init");
 myVC.invoke("view").invoke("addSubview", sceneview);
