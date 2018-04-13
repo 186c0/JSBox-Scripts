@@ -20,7 +20,7 @@
 
 带图形化展示的网络延迟测试工具
 
-![](https://i.loli.net/2018/04/07/5ac8ba9a07f20.png)![2.png](https://i.loli.net/2018/04/07/5ac8ba9a081eb.png)
+![](https://i.loli.net/2018/04/07/5ac8ba9a07f20.png) ![2.png](https://i.loli.net/2018/04/07/5ac8ba9a081eb.png)
 
 
 
@@ -32,12 +32,31 @@
 
 ### JSBox ScreenRecorder
 
-
-
 #### 注意：本脚本仅限 JSBox APP 内录屏，想要在系统范围内录屏请升级 iOS 11
 
-使用方法: 在需要录制的拓展中 require 此脚本,  运行开始录屏,  摇晃设备结束录屏
+使用方法:  运行此脚本开始录屏，再次运行结束录屏，中途摇晃设备快速结束录屏
 
-[JSBox-ScreenRecorder](https://xteko.com/redir?name=ReplayKit&url=https%3A%2F%2Fraw.githubusercontent.com%2F186c0%2FJSBox-Scripts%2Fmaster%2FReplayKit%2FReplayKit.js&icon=icon_035.png&types=1&version=1.0&author=Eva1ent)
+[JSBox ScreenRecorder](https://xteko.com/redir?name=ReplayKit&url=https%3A%2F%2Fraw.githubusercontent.com%2F186c0%2FJSBox-Scripts%2Fmaster%2FReplayKit%2FReplayKit.js&icon=icon_035.png&types=1&version=1.0&author=Eva1ent)
 
-![](https://i.loli.net/2018/04/10/5accae0b339b5.png)  ![](https://i.loli.net/2018/04/10/5accae0b23d8d.png) 
+![](https://i.loli.net/2018/04/10/5accae0b339b5.png)   ![](https://i.loli.net/2018/04/10/5accae0b23d8d.png) 
+
+更新记录:
+
+- 用 presentViewController:animated:completion: 代替 presentModalViewController:animated:
+
+- 优化使用方式 
+
+  ​
+
+------
+
+
+
+### File2Link
+
+上传文件到  [transfer.sh](http://transfer.sh) 获得一个下载链接
+
+![](https://i.loli.net/2018/04/13/5ad00dbeb485c.png)
+
+
+
