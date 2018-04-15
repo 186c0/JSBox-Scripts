@@ -344,3 +344,4 @@ function update(rtt) {
   $("info").text = `NOW:${rtt.toFixed(1)} STD: ${stddev.toFixed(1)} AVG:${avg.toFixed(1)} MIN: ${min} MAX: ${max} LOSS: ${(lossRate * 100).toFixed(2)}%`;
   leftScaleLabels.forEach(i => $(i).text = Math.floor((base - $(i).frame.y) / ratio));
 }
+testPing('bing.com');

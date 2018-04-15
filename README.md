@@ -28,15 +28,15 @@
 
 更新记录:
 
-- 完善左侧刻度线
+- 完善标尺和刻度线
 
 ------
 
 
 
-### JSBox ScreenRecorder
+## JSBox ScreenRecorder
 
-#### 注意：本脚本仅限 JSBox APP 内录屏，想要在系统范围内录屏请升级 iOS 11
+**注意：本脚本仅限 JSBox APP 内录屏，想要在系统范围内录屏请升级 iOS 11**
 
 使用方法:  运行此脚本开始录屏，再次运行结束录屏，中途摇晃设备快速结束录屏
 
@@ -50,13 +50,12 @@
 
 - 优化使用方式 
 
-  ​
 
 ------
 
 
 
-### File2Link
+## File2Link
 
 上传文件到  [transfer.sh](http://transfer.sh) 获得一个下载链接
 
