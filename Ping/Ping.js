@@ -30,7 +30,7 @@ Array.prototype.min = function () {
   return Math.min(...this);
 };
 Array.prototype.avg = function () {
-  return this.reduce((p, v) => (p + v)) / this.length;
+  return this.reduce((p, v) => p + v) / this.length;
 };
 
 $app.keyboardToolbarEnabled = true;
@@ -100,8 +100,8 @@ $ui.render({
             drawStdRect(view, ctx, base);
             drawLineGraph(view, ctx, base);
           }
-        },
-      },
+        }
+      }
     },
     {
       type: "input",
@@ -111,7 +111,7 @@ $ui.render({
         textColor: $color("#666"),
         align: $align.natural,
         type: $kbType.search,
-        darkKeyboard: true,
+        darkKeyboard: true
       },
       layout: (m, v) => {
         m.right.equalTo(v.left).offset(-10);
@@ -151,8 +151,8 @@ $ui.render({
           }
         }
       }
-    },
-  ],
+    }
+  ]
 });
 // $('input').text = $detector.link($clipboard.text)[0].replace(/(http|https):\/\//i, '');
 
@@ -174,14 +174,14 @@ function testPing(host) {
     },
     didReceiveUnexpectedReply: _ => actionErr(_),
     didFail: _ => actionErr(_),
-    didFailToSendPing: _ => actionErr(_),
+    didFailToSendPing: _ => actionErr(_)
   });
 }
 
 function startPing(ip) {
   isRunning = true;
   $('button').title = 'Stop';
-  if (leftScaleLabels.length == 0) {
+  if (leftScaleLabels.length === 0) {
     addLeftScaleLabel();
   }
   if (H < 230) {
@@ -249,7 +249,7 @@ class LeftScaleLabel {
       frame: $rect(1, y, 60, 12),
       font: $font(12),
       color: $color("#777"),
-      align: $align.left,
+      align: $align.left
     };
   }
 }
@@ -327,7 +327,7 @@ function drawStdRect(view, ctx, base) {
   ctx.saveGState();
   ctx.setAlpha(0.1);
   ctx.fillColor = $color("#8ce69c");
-  ctx.fillRect($rect(0, (base - avg * ratio) - stddev * ratio * 0.5, W, stddev * ratio));
+  ctx.fillRect($rect(0, base - avg * ratio - stddev * ratio * 0.5, W, stddev * ratio));
   ctx.restoreGState();
 }
 
@@ -342,5 +342,5 @@ function update(rtt) {
   let lossRate = (send - rec) / send;
   $("canvas").runtimeValue().invoke("setNeedsDisplayInRect", $rect(0, 20, width, height - 50));
   $("info").text = `NOW:${rtt.toFixed(1)} STD: ${stddev.toFixed(1)} AVG:${avg.toFixed(1)} MIN: ${min} MAX: ${max} LOSS: ${(lossRate * 100).toFixed(2)}%`;
-  leftScaleLabels.forEach(i => $(i).text = Math.floor((base - $(i).frame.y) / ratio));
+  leftScaleLabels.forEach(i => $(i).text = Math.round((base - $(i).frame.y) / ratio));
 }
