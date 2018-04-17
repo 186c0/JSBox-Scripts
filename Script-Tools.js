@@ -11,8 +11,9 @@ const SHARETYPE = 'pdf';
 //自定义空白间距
 const WHITESPACE = `&ensp;`;
 const PDF_PAGESIZE = $pageSize.A1;
-
 $app.debug = true;
+
+
 String.prototype.delExtension = function () {
   return this.lastIndexOf('.') === -1 ? this + '' : this.slice(0, this.lastIndexOf('.'));
 };
@@ -102,7 +103,7 @@ function renderCode(code, style, noEncode) {
     return;
   }
   $ui.toast("Rendering...");
-  html = `<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css'><style>*{margin: 0;padding: 0;}pre{font-size: 14px;white-space:pre-wrap;white-space:-moz-pre-wrap;white-space:-pre-wrap;white-space:-o-pre-wrap;word-wrap:break-word;${style}}</style></head><body class='hljs'><script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><pre><code class='hljs'>${encode(code).replace(/ {4}|\t/g, WHITESPACE)}</code></pre></body></html>`;
+  html = `<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="user-scalable=no" /><link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/agate.min.css'><style>*{margin: 0;padding: 0;}pre{font-size: 16px;white-space:pre-wrap;white-space:-moz-pre-wrap;white-space:-pre-wrap;white-space:-o-pre-wrap;word-wrap:break-word;${style}}</style></head><body class='hljs'><script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><pre><code class='hljs'>${encode(code).replace(/ {4}|\t/g, WHITESPACE)}</code></pre></body></html>`;
   $("web").html = html;
   output = code;
 }
@@ -183,17 +184,47 @@ function OCPropsMethods() {
   });
 }
 
+function printGlobalClass() {
+  renderCode(JSBox.runtimeValue().invoke("_methodDescription").rawValue().toString());
+}
+
 function printAllFrameworks() {
   renderCode($objc("NSBundle").invoke('allFrameworks').rawValue().map(i => '[' + i.runtimeValue().invoke('bundlePath').rawValue().replace('/System/Library/', '') + ']').join('\n\n'), 'font-size:22px;');
 }
 
+
+
+let Options = {
+  Views: _views,
+  ViewControllers: _viewControllers,
+  RemoteDebugging: remoteDebugging,
+  OCPropsMethods: OCPropsMethods,
+  PrintGlobalClass: printGlobalClass,
+  PrintAllFrameworks: printAllFrameworks
+};
+
+const tasks = {
+  Compress: '[{"name":"babel","options":{}},{"name":"uglify"}]',
+  Decompress: '[{"name":"babel","options":{}},{"name":"uglify","options":{"output":{"beautify":true}}}]'
+};
+const header = {
+  Host: "www.css-js.com",
+  Connection: "keep-alive",
+  Accept: "application/json, text/javascript, */*; q=0.01",
+  Origin: "https://www.css-js.com",
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.30 Safari/537.36",
+  "Content-Type": "application/x-www-form-urlencoded",
+  Referer: "https://www.css-js.com/tools/compressor.html?tab=uglifyjs"
+};
+
 let timer;
-let UIApp = $objc("UIApplication"),
-  SApp = UIApp.invoke("sharedApplication"),
-  keyWindow = SApp.invoke("keyWindow"),
-  rootVC = keyWindow.invoke("rootViewController");
+let UIApp = $objc("UIApplication");
+let SApp = UIApp.invoke("sharedApplication");
+let keyWindow = SApp.invoke("keyWindow");
+let rootVC = keyWindow.invoke("rootViewController");
 let text = ($context.safari ? $context.safari.items.source : null) || $context.text || ($context.data ? $context.data.string : null) || $clipboard.text || "";
 let output = "";
+let mode = "";
 let html = "";
 let codeView = {
   type: "web",
@@ -205,10 +236,11 @@ let codeView = {
     t.bottom.left.right.inset(0);
   }
 };
-let btn_comp = new Button('btn_comp', '压缩', $color("#2e5266"), 5, e => {
-  mode = "Compress";
-  run(mode);
-});
+let btn_comp = new Button('btn_comp', '压缩', $color("#2e5266"), 5,
+  e => {
+    mode = "Compress";
+    run(mode);
+  });
 let btn_format = new Button('btn_format', '排版', $color("#6e8898"), 42,
   e => {
     mode = "Decompress";
@@ -232,46 +264,25 @@ let btn_more = new Button("btn_more", "More", $color("gray"), 156,
   }
 );
 
-$ui.render({
-  props: {
-    id: "view",
-    title: "Script Tools"
-  },
-  views: [
-    codeView,
-    btn_comp,
-    btn_format,
-    btn_share,
-    btn_save,
-    btn_more
-  ]
-});
+function render() {
+  $ui.render({
+    props: {
+      id: "view",
+      title: "Script Tools"
+    },
+    views: [
+      codeView,
+      btn_comp,
+      btn_format,
+      btn_share,
+      btn_save,
+      btn_more
+    ]
+  });
+}
 
-let Options = {
-  Views: _views,
-  ViewControllers: _viewControllers,
-  RemoteDebugging: remoteDebugging,
-  OCPropsMethods: OCPropsMethods,
-  PrintAllFrameworks: printAllFrameworks
-};
-
-let mode = "";
-let tasks = {
-  Compress: '[{"name":"babel","options":{}},{"name":"uglify"}]',
-  Decompress: '[{"name":"babel","options":{}},{"name":"uglify","options":{"output":{"beautify":true}}}]'
-};
-const header = {
-  Host: "www.css-js.com",
-  Connection: "keep-alive",
-  Accept: "application/json, text/javascript, */*; q=0.01",
-  Origin: "https://www.css-js.com",
-  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.30 Safari/537.36",
-  "Content-Type": "application/x-www-form-urlencoded",
-  Referer: "https://www.css-js.com/tools/compressor.html?tab=uglifyjs"
-};
-
+render();
 if (text) {
   output = text;
   renderCode(text);
-  $("btn_save").bgcolor = $color("tint");
 }
