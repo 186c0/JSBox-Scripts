@@ -14,9 +14,10 @@ const PDF_PAGESIZE = $pageSize.A1;
 $app.debug = true;
 
 
-String.prototype.delExtension = function () {
-  return this.lastIndexOf('.') === -1 ? this + '' : this.slice(0, this.lastIndexOf('.'));
-};
+function delExtension(str) {
+  let index = str.lastIndexOf('.')
+  return index < 0 ? str : str.slice(0, index)
+}
 
 function install(fileName, string) {
   $addin.save({
@@ -35,7 +36,7 @@ function getName() {
   if ($env.app == $app.env || void 0 === $context.data) {
     return new Date().toISOString();
   } else {
-    return $context.data.fileName.delExtension() + ' ' + mode + "ed";
+    return delExtension($context.data.fileName) + ' ' + mode + "ed";
   }
 }
 
