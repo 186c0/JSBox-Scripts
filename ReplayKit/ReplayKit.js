@@ -1,5 +1,5 @@
 // https://t.me/Eva1ent
-// 用法:在需要录制的拓展中 require 此脚本, 运行开始录屏, 摇晃设备结束录屏
+// 用法:运行开始录屏, 再次运行结束录屏，中途摇晃设备快速结束录屏
 const W = $device.info.screen.width;
 const H = $device.info.screen.height;
 let NSBundle = $objc('NSBundle');
@@ -19,12 +19,12 @@ function start() {
   $motion.startUpdates({
     interval: 0.1,
     handler: function (resp) {
-      let {
+      let [
         x,
         y,
         z
-      } = resp.acceleration;
-      if ((Math.abs(x) + Math.abs(y) + Math.abs(z)) > 1.2) {
+      ] = Object.values(resp.acceleration).map(i => Math.abs(i))
+      if (x + y + z > 1.2) {
         $motion.stopUpdates();
         stop();
       }
@@ -38,7 +38,7 @@ function stop() {
     let btn = {
       type: "button",
       props: {
-        bgcolor: $rgba(255, 255, 255, 0.001),
+        bgcolor: $rgba(255, 255, 255, 0.001)
       },
       layout: make => {
         make.top.left.inset(0);
