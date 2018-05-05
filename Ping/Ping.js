@@ -1,9 +1,7 @@
 'use strict';
 $app.tips("使用本工具时请暂时关闭shadowrocket ，否则可能无法Ping通");
 $network.stopPinging();
-const width = $device.info.screen.width;
-const height = $device.info.screen.height;
-const scale = $device.info.screen.scale;
+const {width,height,scale} = $device.info.screen;
 let offsets = [0, 0.25, 0.5];
 let W, H, base, drawRange;
 let period = 0.2;
@@ -50,7 +48,7 @@ $ui.render({
         autoFontSize: true
       },
       layout: m => {
-        m.bottom.inset(0);
+        m.bottom.inset(height === 812 ? 16 : 0);
         m.left.right.inset(0);
         m.height.equalTo(23);
       }
