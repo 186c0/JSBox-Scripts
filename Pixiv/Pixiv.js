@@ -149,7 +149,10 @@
         message: "发现新版本, 是否更新 ?",
         actions: [{
             title: "更新",
-            handler: () => $app.openURL(updateURL)
+            handler: () => {
+              $app.openURL(updateURL)
+              $ui.toast("正在安装更新...")
+            }
           },
           {
             title: "取消"
@@ -171,5 +174,8 @@
   }
   let imgID = 0
   download(url)
-  checkUpdate()
+  $thread.background({
+    delay: 0,
+    handler: checkUpdate
+  })
 })()
