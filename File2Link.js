@@ -16,4 +16,4 @@ $http.request({
         }
         $delay(1, () => $context.close());
     }
-});
+})
