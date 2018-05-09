@@ -54,30 +54,58 @@ let template = [{
   }
 ]
 
-$ui.render({
-  props: {
-    debugging: true,
-    title: "Pixiv"
-  },
-  views: [{
-    type: "matrix",
+function render() {
+  $ui.render({
     props: {
-      id: "matrix",
-      columns: 3,
-      spacing: 1 / scale,
-      square: true,
-      template
+      debugging: true,
+      title: "Pixiv"
     },
-    layout(make) {
-      make.left.right.top.bottom.inset(0)
-    },
-    events: {
-      didReachBottom(sender) {
-        // sender.endFetchingMore()
+    views: [{
+        type: "view",
+        props: {
+          id: "baseView",
+          bgcolor: $color("clear"),
+        },
+        layout: $layout.fill
+      },
+      {
+        type: "matrix",
+        props: {
+          id: "matrix",
+          bgcolor: $color("clear"),
+          columns: 3,
+          spacing: 1 / scale,
+          square: true,
+          template
+        },
+        layout(make) {
+          make.left.right.top.bottom.inset(0)
+        },
+        events: {
+          didReachBottom(sender) {
+            sender.endFetchingMore()
+          }
+        }
       }
-    }
-  }]
-})
+    ]
+  })
+  $('baseView').add({
+    type: 'image',
+    props: {
+      id: 'bgImage',
+      alpha: 0.6
+    },
+    views: [{
+      type: 'blur',
+      props: {
+        style: 1,
+        alpha: 1
+      },
+      layout: $layout.fill
+    }],
+    layout: $layout.fill
+  })
+}
 
 function request(method, url, header, handler) {
   // $ui.toast(`正在发送 ${method} 请求`, 0.2)
@@ -89,12 +117,12 @@ function request(method, url, header, handler) {
   })
 }
 
-function cacheData(key, data) {
+function cacheImgData(key, data) {
   $cache.setAsync({
     key,
     value: data,
     handler(object) {
-      // $ui.toast("已缓存", 0.5)
+      $ui.toast("已缓存", 0.5)
     }
   })
 }
@@ -125,7 +153,7 @@ function download(url) {
           data: imgData,
           handler: success => $ui.toast(`已保存${imgID}张`)
         })
-        imgID++
+        if (imgID++ < 10) cacheImgData('img' + imgID, imgData);
       }
     })
   }))
@@ -133,7 +161,7 @@ function download(url) {
 
 async function upload(img) {
   $ui.loading(true)
-  $ui.toast("正在上传...", 5)
+  $ui.toast("正在上传...", 10)
   let resp = await $http.upload({
     url: "https://sm.ms/api/upload",
     files: [{
@@ -142,6 +170,7 @@ async function upload(img) {
     }]
   })
   $ui.loading(false)
+  $ui.toast("", 0)
   let data = resp.data.data
   if (!data) return $ui.toast("上传出错，请检查网络")
   return data.url
@@ -160,11 +189,10 @@ function insertImg(index, imgData, title, width, height, user) {
     }
   })
   let blur = $('matrix').cell($indexPath(0, index)).views[0].views[1].get('blur')
-  blur.alpha = 1
+  blur.alpha = 1.5
   blur.animator.makeOpacity(0).easeInQuad.animate(1)
   $delay(1, () => blur.remove())
 }
-
 
 function checkUpdate() {
   request('GET', versionURL, null, resp => {
@@ -186,7 +214,7 @@ function checkUpdate() {
     })
   })
 }
-//https://www.pixiv.net/member.php?id=1655331
+
 async function getUserInfo(userID) {
   let resp = await $http.get(`${api}?id=${userID}&type=member`)
   return resp.data.response[0]
@@ -226,21 +254,23 @@ async function searchCreator(url) {
   let resp = await $http.get(imgSearchURL + encodeURI(url))
   let creator = resp.data.match(/member\.php\?id=\d+/)
   if (!creator) {
-    $ui.toast("作品太过冷门或非P站画师所作")
+    $ui.toast("作品过于冷门或非P站画师所作")
     return
   }
   return creator[0].replace('member.php?id=', '')
 }
 
 async function main() {
-  let text = ($context.text || $clipboard.text).match(/id=\d+/)
+  let text = ($context.text || $clipboard.text || '').match(/id=\d+/)
   let userID = text ? text[0].replace('id=', '') : null
   if (userID) {
     downImg(userID)
   } else {
+    $ui.toast("选择图片来查找画师")
     let photo = await $photo.pick({
       format: "data"
     })
+    if (!photo.data) return;
     let url = await upload(photo.data)
     let creatorID = await searchCreator(url)
     let infoData = await getUserInfo(creatorID)
@@ -248,6 +278,13 @@ async function main() {
   }
 }
 
+$cache.getAsync({
+  key: `img${~~(Math.random()*11)}`,
+  handler: (object) => {
+    $('bgImage').data = object
+  }
+})
+render()
 main()
 $thread.background({
   delay: 0,
