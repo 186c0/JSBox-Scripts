@@ -11,7 +11,7 @@ let {
   height,
   scale
 } = $device.info.screen
-let imgID = 0
+let i = 0
 let template = [{
     type: "view",
     props: {
@@ -151,9 +151,9 @@ function download(url) {
         insertImg(0, imgData, title, width, height, user)
         $photo.save({
           data: imgData,
-          handler: success => $ui.toast(`已保存${imgID}张`)
+          handler: success => $ui.toast(`已保存${i}张`)
         })
-        if (imgID++ < 10) cacheImgData('img' + imgID, imgData);
+        if (i++ < 10) cacheImgData('img' + i, imgData);
       }
     })
   }))
@@ -219,6 +219,9 @@ async function getUserInfo(userID) {
   let resp = await $http.get(`${api}?id=${userID}&type=member`)
   return resp.data.response[0]
 }
+async function getImgInfo(illustID) {
+
+}
 
 function actionUserInfo(data) {
   let {
@@ -253,11 +256,16 @@ async function searchCreator(url) {
   $ui.toast("正在查找作者...", 5)
   let resp = await $http.get(imgSearchURL + encodeURI(url))
   let creator = resp.data.match(/member\.php\?id=\d+/)
-  if (!creator) {
+  let illust = resp.data.match(/illust_id=\d+/)
+  if (!(creator && illust)) {
     $ui.toast("作品过于冷门或非P站画师所作")
     return
   }
-  return creator[0].replace('member.php?id=', '')
+  let [creatorID, illustID] = [creator[0], illust[0]].map(i => i.match(/\d+/)[0])
+  return {
+    creatorID,
+    illustID
+  }
 }
 
 async function main() {
@@ -272,9 +280,12 @@ async function main() {
     })
     if (!photo.data) return;
     let url = await upload(photo.data)
-    let creatorID = await searchCreator(url)
-    let infoData = await getUserInfo(creatorID)
-    actionUserInfo(infoData)
+    let {
+      creatorID,
+      illustID
+    } = await searchCreator(url)
+    let userInfo = await getUserInfo(creatorID)
+    actionUserInfo(userInfo)
   }
 }
 
