@@ -1,29 +1,177 @@
-let version = 0.1
-let versionURL = 'https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Pixiv/version'
-let updateURL = `jsbox://install?url=${encodeURI('https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Pixiv/Pixiv.js')}`
-let imgSearchURL = 'https://saucenao.com/search.php?db=999&url='
-let api = 'https://api.imjad.cn/pixiv/v1'
-let header = {
-  'Referer': 'https://www.pixiv.net'
+$app.tips("使用方式:\n1.点击上方半透明矩形选择图片查找P站画师\n2.从Pixiv App上画师主页分享处复制个人链接后打开本拓展下载全部作品")
+$app.strings = {
+  en: {
+    downloadAll: 'Download All'
+  },
+  'zh-Hans': {
+    downloadAll: '下载所有作品'
+  }
+};
+
+const version = 0.4;
+const versionURL = 'https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Pixiv/version';
+const updateURL = `jsbox://install?url=${encodeURI('https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Pixiv/Pixiv.js')}`;
+const imgSearchURL = 'https://saucenao.com/search.php?db=999&url=';
+const api = 'https://api.imjad.cn/pixiv/v1';
+const header = {
+  Referer: 'https://www.pixiv.net'
+};
+
+class Range {
+  constructor(start, end, step) {
+      this.start = start;
+      this.end = end;
+      this.step = step;
+    }
+    [Symbol.iterator]() {
+      let curr = this.start,
+        _this = this;
+      return (function* () {
+        while (curr < _this.end) {
+          yield curr;
+          curr += _this.step;
+        }
+      })();
+    }
 }
-let {
+
+const range = (start, end, step = 1) => new Range(start, end, step);
+
+const {
   width,
   height,
   scale
-} = $device.info.screen
-let i = 0
-let template = [{
-    type: "view",
+} = $device.info.screen;
+
+let n = 0;
+let action = $app.env === $env.action;
+let text = ($context.text || $clipboard.text || '').match(/id=\d+/);
+let readyToDownID = text ? text[0].replace('id=', '') : null;
+
+
+const imgBlurView = {
+  type: 'image',
+  props: {
+    id: 'bgImage',
+    alpha: 1
+  },
+  views: [{
+    type: 'blur',
+    props: {
+      style: 1,
+      alpha: 0.6
+    },
+    layout: $layout.fill
+  }],
+  layout: $layout.fill
+};
+
+const illustDetailView = {
+  type: 'view',
+  props: {
+    id: 'detailBaseView',
+    smoothRadius: 20,
+    bgcolor: $rgba(0, 0, 0, 0.3)
+  },
+  layout: (make, view) => {
+    make.top.left.bottom.right.inset(16);
+  },
+  views: [{
+      type: 'image',
+      props: {
+        id: 'illustImg',
+        // smoothRadius: 10,
+        bgcolor: $rgba(0, 0, 0, 0.25)
+      },
+      layout: (make, view) => {
+        make.top.inset(0);
+        make.left.right.inset(0);
+        make.height.equalTo(~~(height * 0.4));
+      },
+      events: {
+        tapped: () => {
+          chooseToDownload();
+        }
+      }
+    },
+    {
+      type: 'button',
+      props: {
+        id: 'btn',
+        font: $font(14),
+        title: $l10n('downloadAll'),
+        bgcolor: $rgba(0, 0, 0, 0.3)
+      },
+      layout: (make, view) => {
+        let v = $('illustImg');
+        make.left.right.inset(60);
+        make.bottom.inset(10);
+      },
+      events: {
+        tapped: sender => {
+          $ui.push({
+            props: {
+              title: ""
+            },
+            views: [{
+              type: "view",
+              props: {
+                id: ""
+              },
+              layout: $layout.fill,
+              views: [imgBlurView, canvas, matrixView],
+              events: {}
+            }]
+          })
+          getImgURL(readyToDownID);
+        }
+      }
+    },
+    {
+      type: 'view',
+      props: {
+        id: 'line',
+        bgcolor: $color('#99999977'),
+        userInteractionEnabled: false
+      },
+      layout: (make, view) => {
+        make.bottom.equalTo($('btn').top).inset(8);
+        make.left.right.inset(20);
+        make.height.equalTo(5 / scale);
+      }
+    },
+    {
+      type: 'text',
+      props: {
+        id: 'infoText',
+        align: $align.left,
+        // font: $font('ArialRoundedMTBold', 14),
+        font: $font('iosevka', 12),
+        // smoothRadius: 10,
+        editable: false,
+        bgcolor: $rgba(0, 0, 0, 0, 3)
+      },
+      layout: (make, view) => {
+        make.top.equalTo($('illustImg').bottom)
+        make.bottom.equalTo($('line').top)
+        make.left.right.inset(20);
+      }
+    }
+  ]
+};
+
+const template = [{
+    type: 'view',
     props: {
       id: 'itemBaseView',
-      bgcolor: $color("#eee")
+      bgcolor: $color('#eee')
     },
     layout: $layout.fill
   },
   {
-    type: "image",
+    type: 'image',
     props: {
-      id: "image"
+      id: 'image'
     },
     views: [{
       type: 'blur',
@@ -35,268 +183,325 @@ let template = [{
       layout: $layout.fill
     }],
     layout: $layout.fill
+  }
+
+  // {
+  //   type: 'label',
+  //   props: {
+  //     id: 'resolution',
+  //     alpha: 0.8,
+  //     font: $font(9),
+  //     autoFontSize: true,
+  //     align: $align.center,
+  //     bgcolor: $color('#eee'),
+  //     textColor: $color('#666')
+  //   },
+  //   layout: (make, view) => {
+  //     make.bottom.equalTo($('image'));
+  //     make.size.equalTo($size(40, 8));
+  //   }
+  // }
+];
+
+const matrixView = {
+  type: 'matrix',
+  props: {
+    id: 'matrix',
+    bgcolor: $color('clear'),
+    columns: width > 375 ? 4 : 3,
+    spacing: 4 / scale,
+    square: true,
+    template
   },
-  {
-    type: "label",
-    props: {
-      id: 'resolution',
-      alpha: 0.8,
-      font: $font(9),
-      autoFontSize: true,
-      align: $align.center,
-      bgcolor: $color("#eee"),
-      textColor: $color("#666")
+  layout: (make, view) => {
+    make.top.left.right.bottom.inset(3 / scale)
+  },
+  events: {
+    didReachBottom(sender) {
+      sender.endFetchingMore();
     },
-    layout: (make, view) => {
-      make.bottom.equalTo($('image'))
-      make.size.equalTo($size(50, 9))
+    didSelect: function (sender, indexPath, data) {}
+  }
+};
+
+const canvas = {
+  type: "canvas",
+  props: {
+    bgcolor: $color("clear")
+  },
+  layout: $layout.fill,
+  events: {
+    // modified from http://evanyou.me/
+    draw: function (view, ctx) {
+      let x = ctx,
+        pr = scale,
+        w = 1.5 * view.frame.width,
+        h = view.frame.height,
+        f = 60,
+        q,
+        m = Math,
+        r = 0,
+        u = m.PI * 2,
+        v = m.cos,
+        z = m.random
+      x.setAlpha(0.6)
+      x.scaleCTM(1 / 1.5, 1)
+      x.allowsAntialiasing = true
+
+      function i() {
+        x.clearRect(0, 0, w, h)
+        q = [{
+          x: 0,
+          y: h * 0.7 + f
+        }, {
+          x: 0,
+          y: h * 0.7 - f
+        }]
+        while (q[1].x < w + f) d(q[0], q[1])
+      }
+
+      function d(i, j) {
+        x.beginPath()
+        x.moveToPoint(i.x, i.y)
+        x.addLineToPoint(j.x, j.y)
+        let k = j.x + (z() * 2 - 0.25) * f,
+          n = y(j.y)
+        x.addLineToPoint(k, n)
+        x.closePath()
+        r -= u / -50
+        x.fillColor = $color('#' + (v(r) * 127 + 128 << 16 | v(r + u / 3) * 127 + 128 << 8 | v(r + u / 3 * 2) * 127 + 128).toString(16))
+        x.fillPath()
+        q[0] = q[1]
+        q[1] = {
+          x: k,
+          y: n
+        }
+      }
+
+      function y(p) {
+        let t = p + (z() * 2 - 1.1) * f
+        return (t > h || t < 0) ? y(p) : t
+      }
+      i()
     }
   }
-]
+}
 
 function render() {
   $ui.render({
     props: {
-      debugging: true,
-      title: "Pixiv"
+      // debugging: true,
+      title: 'Pixiv'
     },
     views: [{
-        type: "view",
-        props: {
-          id: "baseView",
-          bgcolor: $color("clear"),
-        },
-        layout: $layout.fill
-      },
-      {
-        type: "matrix",
-        props: {
-          id: "matrix",
-          bgcolor: $color("clear"),
-          columns: 3,
-          spacing: 1 / scale,
-          square: true,
-          template
-        },
-        layout(make) {
-          make.left.right.top.bottom.inset(0)
-        },
-        events: {
-          didReachBottom(sender) {
-            sender.endFetchingMore()
-          }
-        }
-      }
-    ]
-  })
-  $('baseView').add({
-    type: 'image',
-    props: {
-      id: 'bgImage',
-      alpha: 0.6
-    },
-    views: [{
-      type: 'blur',
+      type: 'view',
       props: {
-        style: 1,
-        alpha: 1
+        id: 'baseView',
+        bgcolor: $color('clear')
       },
       layout: $layout.fill
-    }],
-    layout: $layout.fill
-  })
+    }]
+  });
+  $('baseView').add(imgBlurView);
+  if (readyToDownID) {
+    $('baseView').add(canvas);
+    $('baseView').add(matrixView);
+    getImgURL(readyToDownID);
+  } else {
+    $('baseView').add(illustDetailView);
+  }
 }
 
-function request(method, url, header, handler) {
-  // $ui.toast(`正在发送 ${method} 请求`, 0.2)
-  $http.request({
-    method,
-    url,
-    header,
-    handler
-  })
-}
 
 function cacheImgData(key, data) {
   $cache.setAsync({
     key,
     value: data,
     handler(object) {
-      $ui.toast("已缓存", 0.5)
+      // $ui.toast("已缓存" + key, 1)
     }
-  })
+  });
 }
 
-function download(url) {
-  request('GET', url, null, resp => resp.data.response.forEach(i => {
-    let {
-      image_urls,
-      title,
-      tags,
-      width,
-      height,
-      stats,
-      age_limit,
-      user,
-      type
-    } = i
-    $http.download({
-      url: image_urls.px_480mw,
-      header,
-      progress: function (bytesWritten, totalBytes) {
-        let percentage = bytesWritten * 1.0 / totalBytes
-      },
-      handler: resp => {
-        let imgData = resp.data
-        insertImg(0, imgData, title, width, height, user)
-        $photo.save({
-          data: imgData,
-          handler: success => $ui.toast(`已保存${i}张`)
-        })
-        if (i++ < 10) cacheImgData('img' + i, imgData);
-      }
-    })
+async function download(url) {
+  $ui.toast("正在请求数据...", 5)
+  let resp = await $http.get(url)
+  $ui.toast("正在下载图片...", 5)
+  resp.data.response.forEach(i => $http.download({
+    // FIXME:
+    url: i.image_urls.large,
+    header,
+    progress: function (bytesWritten, totalBytes) {
+      let percentage = bytesWritten * 1.0 / totalBytes
+    },
+    handler: resp => {
+      let imgData = resp.data;
+      let length = $('matrix').data.length
+      insertImg(0, action ? 0 : length, imgData);
+      $photo.save({
+        data: imgData
+      });
+      if (length < 5) cacheImgData('img' + length, imgData);
+    }
   }))
 }
 
+
+
 async function upload(img) {
-  $ui.loading(true)
-  $ui.toast("正在上传...", 10)
+  $ui.loading(true);
+  $ui.toast('正在上传...', 10);
   let resp = await $http.upload({
-    url: "https://sm.ms/api/upload",
+    url: 'https://sm.ms/api/upload',
     files: [{
-      "data": img,
-      "name": "smfile"
+      data: img,
+      name: 'smfile'
     }]
-  })
-  $ui.loading(false)
-  $ui.toast("", 0)
-  let data = resp.data.data
-  if (!data) return $ui.toast("上传出错，请检查网络")
-  return data.url
+  });
+  $ui.loading(false);
+  $ui.toast('', 0);
+  let data = resp.data.data;
+  if (!data) return $ui.toast('上传出错，请检查网络');
+  return data.url;
 }
 
-function insertImg(index, imgData, title, width, height, user) {
+function insertImg(s, row, imgData) {
   $('matrix').insert({
-    indexPath: $indexPath(0, index),
+    indexPath: $indexPath(s, row),
     value: {
       image: {
         data: imgData
-      },
-      resolution: {
-        text: `${width} x ${height}`
       }
     }
-  })
-  let blur = $('matrix').cell($indexPath(0, index)).views[0].views[1].get('blur')
-  blur.alpha = 1.5
-  blur.animator.makeOpacity(0).easeInQuad.animate(1)
-  $delay(1, () => blur.remove())
+  });
+  let blur = $('matrix').cell($indexPath(0, row)).views[0].views[1].get('blur');
+  blur.alpha = 1;
+  blur.animator.makeOpacity(0).easeInQuad.animate(1);
+  $delay(1, () => blur.remove());
 }
 
-function checkUpdate() {
-  request('GET', versionURL, null, resp => {
-    if (version == resp.data) return;
-    $ui.action({
-      title: "更新提示",
-      message: "发现新版本, 是否更新 ?",
-      actions: [{
-          title: "更新",
-          handler: () => {
-            $app.openURL(updateURL)
-            $ui.toast("正在安装更新...")
-          }
-        },
-        {
-          title: "取消"
-        }
-      ]
-    })
-  })
-}
-
-async function getUserInfo(userID) {
-  let resp = await $http.get(`${api}?id=${userID}&type=member`)
-  return resp.data.response[0]
-}
-async function getImgInfo(illustID) {
-
-}
-
-function actionUserInfo(data) {
-  let {
-    id,
-    account,
-    name,
-    stats
-  } = data
+async function checkUpdate() {
+  let resp = await $http.get(versionURL)
+  if (version == resp.data) return;
   $ui.action({
-    title: "作者信息",
-    message: `昵称: ${name}\n帐户名: ${account}\n数字ID: ${id}\n\n作品: ${stats.works} 收藏: ${stats.favorites} 跟随: ${stats.following}`,
+    title: '更新提示',
+    message: '发现新版本, 是否更新 ?',
     actions: [{
-        title: "下载全部作品",
+        title: '更新',
         handler: () => {
-          downImg(id)
+          $app.openURL(updateURL);
+          $ui.toast('正在安装更新...');
         }
       },
       {
-        title: "取消"
+        title: '取消'
       }
     ]
+  });
+}
+
+
+async function getUserInfo(userID) {
+  let resp = await $http.get(`${api}?id=${userID}&type=member`);
+  return resp.data.response[0];
+}
+
+async function getImgInfo(illustID) {
+  let resp = await $http.get(`${api}?id=${illustID}&type=illust`);
+  return resp.data.response[0];
+}
+
+function getInfo(userID, illustID) {
+  Promise.all([
+    getUserInfo(userID),
+    getImgInfo(illustID)
+  ]).then(value => {
+    console.log(value);
+    fillInfo(value[1], value[0])
   })
 }
 
-async function downImg(userID) {
-  let data = await getUserInfo(userID)
-  let count = data.stats.works
-  let url = `${api}?id=${userID}&type=member_illust&per_page=${count}`
-  download(url)
+function fillInfo(imgInfo, userInfo) {
+  $('infoText').text = `作品信息
+    图片ID:        ${imgInfo.id}
+    标  题:        ${imgInfo.title}
+    标  签:        \n${imgInfo.tags.map(i => `    ${i}\n`).join('')}
+    类  型:        ${imgInfo.type}
+    说  明:        ${imgInfo.caption}
+    查看量:        ${imgInfo.stats.views_count}
+    收藏量:        ${imgInfo.stats.favorited_count.public}
+    分辨率:        ${imgInfo.width} x ${imgInfo.height}
+    分  级:        ${imgInfo.age_limit}
+
+作者信息
+    用户ID:        ${userInfo.id}
+    昵  称:        ${userInfo.name}
+    帐户名:        ${userInfo.account}
+    作  品:        ${userInfo.stats.works}
+    收  藏:        ${userInfo.stats.favorites}
+    跟  随:        ${userInfo.stats.following}
+    简  介:        ${userInfo.profile.introduction} 
+    `;
+  readyToDownID = userInfo.id;
+}
+
+async function getImgURL(userID, type = 'member_illust') {
+  let data = await getUserInfo(userID);
+  let count = data.stats.works;
+  let url = `${api}?id=${userID}&type=${type}&per_page=${count}`;
+  n = 0
+  download(url);
 }
 async function searchCreator(url) {
-  $ui.toast("正在查找作者...", 5)
-  let resp = await $http.get(imgSearchURL + encodeURI(url))
-  let creator = resp.data.match(/member\.php\?id=\d+/)
-  let illust = resp.data.match(/illust_id=\d+/)
+  $ui.toast('正在查找作者...', 10);
+  let resp = await $http.get(imgSearchURL + encodeURI(url));
+  let creator = resp.data.match(/member\.php\?id=\d+/);
+  let illust = resp.data.match(/illust_id=\d+/);
+  $ui.toast('', 0);
   if (!(creator && illust)) {
-    $ui.toast("作品过于冷门或非P站画师所作")
-    return
+    $ui.toast('作品过于冷门或非P站画师所作');
+    return;
   }
-  let [creatorID, illustID] = [creator[0], illust[0]].map(i => i.match(/\d+/)[0])
+  let [creatorID, illustID] = [creator[0], illust[0]].map(i => i.match(/\d+/)[0]);
   return {
     creatorID,
     illustID
-  }
+  };
 }
 
-async function main() {
-  let text = ($context.text || $clipboard.text || '').match(/id=\d+/)
-  let userID = text ? text[0].replace('id=', '') : null
-  if (userID) {
-    downImg(userID)
-  } else {
-    $ui.toast("选择图片来查找画师")
-    let photo = await $photo.pick({
-      format: "data"
-    })
-    if (!photo.data) return;
-    let url = await upload(photo.data)
-    let {
-      creatorID,
-      illustID
-    } = await searchCreator(url)
-    let userInfo = await getUserInfo(creatorID)
-    actionUserInfo(userInfo)
-  }
+async function chooseToDownload() {
+  let photo = await $photo.pick({
+    format: 'data'
+  });
+  let data = photo.data;
+  if (!data) return;
+  $('illustImg').data = data;
+  let url = await upload(data);
+  let {
+    creatorID,
+    illustID
+  } = await searchCreator(url);
+  getInfo(creatorID, illustID)
 }
 
-$cache.getAsync({
-  key: `img${~~(Math.random()*11)}`,
-  handler: (object) => {
-    $('bgImage').data = object
+
+function setBackground() {
+  let set = data => {
+    $('bgImage').data = data
+    imgBlurView.props.data = data
   }
-})
-render()
-main()
+  $cache.getAsync({
+    key: `img${~~(Math.random() * 6)}`,
+    handler: object => {
+      if (object) return set(object)
+      $http.download({
+        url: 'https://i.loli.net/2018/05/14/5af95f86135ef.png'
+      }).then(value => set(value.data))
+    }
+  });
+}
+render();
+setBackground();
 $thread.background({
   delay: 0,
   handler: checkUpdate
