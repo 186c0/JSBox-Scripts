@@ -59,7 +59,7 @@ const imgBlurView = {
     type: 'blur',
     props: {
       style: 1,
-      alpha: 0.6
+      alpha: 0.7
     },
     layout: $layout.fill
   }],
@@ -131,7 +131,8 @@ const illustDetailView = {
       type: 'view',
       props: {
         id: 'line',
-        bgcolor: $color('#99999977'),
+        alpha: 0.6,
+        bgcolor: $color('tint'),
         userInteractionEnabled: false
       },
       layout: (make, view) => {
