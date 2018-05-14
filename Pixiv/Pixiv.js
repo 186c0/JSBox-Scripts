@@ -1,4 +1,4 @@
-$app.tips("使用方式:\n1.点击上方半透明矩形选择图片查找P站画师\n2.从Pixiv App上画师主页分享处复制个人链接后打开本拓展下载全部作品")
+$app.tips("使用方式:\n1.点击上方半透明矩形选择图片查找P站画师\n2.从Pixiv App上画师主页分享处运行或复制个人链接后打开本脚本下载全部作品")
 $app.strings = {
   en: {
     downloadAll: 'Download All'
@@ -8,7 +8,7 @@ $app.strings = {
   }
 };
 
-const version = 0.4;
+const version = 0.5;
 const versionURL = 'https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Pixiv/version';
 const updateURL = `jsbox://install?url=${encodeURI('https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Pixiv/Pixiv.js')}`;
 const imgSearchURL = 'https://saucenao.com/search.php?db=999&url=';
@@ -59,7 +59,7 @@ const imgBlurView = {
     type: 'blur',
     props: {
       style: 1,
-      alpha: 0.7
+      alpha: 1
     },
     layout: $layout.fill
   }],
@@ -80,7 +80,6 @@ const illustDetailView = {
       type: 'image',
       props: {
         id: 'illustImg',
-        // smoothRadius: 10,
         bgcolor: $rgba(0, 0, 0, 0.25)
       },
       layout: (make, view) => {
@@ -146,11 +145,9 @@ const illustDetailView = {
       props: {
         id: 'infoText',
         align: $align.left,
-        // font: $font('ArialRoundedMTBold', 14),
         font: $font('iosevka', 12),
-        // smoothRadius: 10,
         editable: false,
-        bgcolor: $rgba(0, 0, 0, 0, 3)
+        bgcolor: $color("clear")
       },
       layout: (make, view) => {
         make.top.equalTo($('illustImg').bottom)
@@ -292,7 +289,7 @@ function render() {
   $ui.render({
     props: {
       // debugging: true,
-      title: 'Pixiv'
+      title: readyToDownID ? 'PixivDownloader' : 'Pixiv插画检索'
     },
     views: [{
       type: 'view',
@@ -328,8 +325,8 @@ async function download(url) {
   $ui.toast("正在请求数据...", 5)
   let resp = await $http.get(url)
   $ui.toast("正在下载图片...", 5)
+  console.log(resp.data.response[0]);
   resp.data.response.forEach(i => $http.download({
-    // FIXME:
     url: i.image_urls.large,
     header,
     progress: function (bytesWritten, totalBytes) {
@@ -346,8 +343,6 @@ async function download(url) {
     }
   }))
 }
-
-
 
 async function upload(img) {
   $ui.loading(true);
@@ -417,33 +412,36 @@ function getInfo(userID, illustID) {
     getUserInfo(userID),
     getImgInfo(illustID)
   ]).then(value => {
-    console.log(value);
     fillInfo(value[1], value[0])
   })
 }
 
-function fillInfo(imgInfo, userInfo) {
+function fillInfo(i, u) {
   $('infoText').text = `作品信息
-    图片ID:        ${imgInfo.id}
-    标  题:        ${imgInfo.title}
-    标  签:        \n${imgInfo.tags.map(i => `    ${i}\n`).join('')}
-    类  型:        ${imgInfo.type}
-    说  明:        ${imgInfo.caption}
-    查看量:        ${imgInfo.stats.views_count}
-    收藏量:        ${imgInfo.stats.favorited_count.public}
-    分辨率:        ${imgInfo.width} x ${imgInfo.height}
-    分  级:        ${imgInfo.age_limit}
+    图片ID:        ${i.id}
+    标  题:        ${i.title}
+    类  型:        ${i.type}
+    Rating:        ${i.stats.score}
+    查看量:        ${i.stats.views_count}
+    收藏量:        ${i.stats.favorited_count.public}
+    标  签:        \n${i.tags.map(i => `    ${i}\n`).join('')}
+    工  具:        ${i.tools.map(i => i).join(', ')}
+    说  明:        ${i.caption}
+    分辨率:        ${i.width} x ${i.height}
+    分  级:        ${i.age_limit}
 
 作者信息
-    用户ID:        ${userInfo.id}
-    昵  称:        ${userInfo.name}
-    帐户名:        ${userInfo.account}
-    作  品:        ${userInfo.stats.works}
-    收  藏:        ${userInfo.stats.favorites}
-    跟  随:        ${userInfo.stats.following}
-    简  介:        ${userInfo.profile.introduction} 
+    用户ID:        ${u.id}
+    昵  称:        ${u.name}
+    性  别:        ${u.gender}
+    帐户名:        ${u.account}
+    作  品:        ${u.stats.works}
+    收  藏:        ${u.stats.favorites}
+    跟  随:        ${u.stats.following}
+    好  友:        ${u.stats.friends}
+    简  介:        ${u.profile.introduction}
     `;
-  readyToDownID = userInfo.id;
+  readyToDownID = u.id;
 }
 
 async function getImgURL(userID, type = 'member_illust') {
@@ -458,11 +456,7 @@ async function searchCreator(url) {
   let resp = await $http.get(imgSearchURL + encodeURI(url));
   let creator = resp.data.match(/member\.php\?id=\d+/);
   let illust = resp.data.match(/illust_id=\d+/);
-  $ui.toast('', 0);
-  if (!(creator && illust)) {
-    $ui.toast('作品过于冷门或非P站画师所作');
-    return;
-  }
+  if (!creator) return $ui.toast('作品过于冷门或非P站画师所作');
   let [creatorID, illustID] = [creator[0], illust[0]].map(i => i.match(/\d+/)[0]);
   return {
     creatorID,
@@ -477,6 +471,7 @@ async function chooseToDownload() {
   let data = photo.data;
   if (!data) return;
   $('illustImg').data = data;
+  $('infoText').text = ''
   let url = await upload(data);
   let {
     creatorID,
