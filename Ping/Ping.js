@@ -1,7 +1,11 @@
 'use strict';
 $app.tips("使用本工具时请暂时关闭shadowrocket ，否则可能无法Ping通");
 $network.stopPinging();
-const {width,height,scale} = $device.info.screen;
+const {
+  scale,
+  width,
+  height
+} = $device.info.screen;
 let offsets = [0, 0.25, 0.5];
 let W, H, base, drawRange;
 let period = 0.2;
@@ -41,7 +45,7 @@ $ui.render({
       type: "label",
       props: {
         id: 'info',
-        font: $font("ArialRoundedMTBold", 12),
+        font: $font("iosevka-bold", 14),
         color: $color("#666"),
         bgcolor: $rgba(233, 233, 233, 0.8),
         align: $align.center,
@@ -57,7 +61,7 @@ $ui.render({
       type: "label",
       props: {
         id: 'ip',
-        font: $font(18),
+        font: $font("iosevka", 18),
         color: $color("#777"),
         align: $align.center
       },
@@ -71,7 +75,7 @@ $ui.render({
       type: "label",
       props: {
         id: 'ipInfo',
-        font: $font(16),
+        font: $font("iosevka", 16),
         color: $color("#777"),
         align: $align.center,
         autoFontSize: true
@@ -92,12 +96,12 @@ $ui.render({
           base = H / 1.25;
           drawRange = Math.floor(base - 50);
           drawGrid(view, ctx, base);
-          if (rtts.length > 0) {
-            drawMinMaxLine(view, ctx, base);
-            drawAvgLine(view, ctx, base);
-            drawStdRect(view, ctx, base);
-            drawLineGraph(view, ctx, base);
-          }
+          if (!rtts.length > 0) return;
+          drawMinMaxLine(view, ctx, base);
+          drawAvgLine(view, ctx, base);
+          drawStdRect(view, ctx, base);
+          drawLineGraph(view, ctx, base);
+
         }
       }
     },
@@ -105,7 +109,7 @@ $ui.render({
       type: "input",
       props: {
         placeholder: "请输入域名或IP",
-        font: $font("ArialRoundedMTBold", 16),
+        font: $font("iosevka", 16),
         textColor: $color("#666"),
         align: $align.natural,
         type: $kbType.search,
@@ -128,7 +132,7 @@ $ui.render({
     {
       type: "button",
       props: {
-        font: $font("ArialRoundedMTBold", 16),
+        font: $font("iosevka", 16),
         bgcolor: $rgba(100, 100, 100, 0.9),
         title: "Ping"
       },
@@ -342,3 +346,27 @@ function update(rtt) {
   $("info").text = `NOW:${rtt.toFixed(1)} STD: ${stddev.toFixed(1)} AVG:${avg.toFixed(1)} MIN: ${min} MAX: ${max} LOSS: ${(lossRate * 100).toFixed(2)}%`;
   leftScaleLabels.forEach(i => $(i).text = Math.round((base - $(i).frame.y) / ratio));
 }
+
+
+(async function checkUpdate() {
+  const version = 1.0
+  const versionURL = 'https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Ping/version'
+  const updateURL = `jsbox://install?url=${encodeURI('https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Ping/Ping.js')}`
+  let resp = await $http.get(versionURL)
+  if (version == resp.data) return
+  $ui.action({
+    title: '更新提示',
+    message: '发现新版本, 是否更新 ?',
+    actions: [{
+        title: '更新',
+        handler: () => {
+          $app.openURL(updateURL)
+          $ui.toast('正在安装更新...')
+        }
+      },
+      {
+        title: '取消'
+      }
+    ]
+  })
+})()
