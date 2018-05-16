@@ -11,7 +11,7 @@
     "sourceType": "module"
   },
   "rules": {
-    "no-console": "off",
+    "no-console": "error",
     "no-unused-vars": "off",
     "accessor-pairs": "error",
     "array-bracket-newline": "off",
