@@ -8,6 +8,7 @@ let header = {
   origin: site,
   referer: site + "/user"
 }
+let isCheckIn = false
 let checkIn = site + "/user/checkin"
 let colors = ['#e46367', '#e8b4b6', '#7dd1f0', '#ff6369', '#c2b5fa'];
 
@@ -29,6 +30,7 @@ async function login(email, passwd) {
 async function getUsage() {
   let resp = await $http.get(site + "/user");
   let res = resp.data.match(/dataPoints:[\s\S]*?\]/);
+  isCheckIn = /不能续命/.test(resp.data)
   return eval(`{${res}}`);
 }
 
@@ -75,11 +77,7 @@ function render() {
               ctx.fillRect($rect(0, view.frame.height * 0.5, points[i] / 100 * view.frame.width, 80));
               ctx.restoreGState();
             }
-          },
-          tapped: sender => $http.post({
-            url: checkIn,
-            header: header
-          }).then(value => $ui.toast(value.data.msg))
+          }
         }
       },
       {
@@ -119,9 +117,16 @@ $('cvs').runtimeValue().invoke('setNeedsDisplay')
 $('label').text = usage.map(i => i.legendText).join(" | ")
 $cache.set("usage", usage)
 
+if (!isCheckIn) {
+  $http.post({
+    url: checkIn,
+    header: header
+  }).then(value => $ui.toast(value.data.msg))
+}
+
 if ($app.env !== $env.app) return;
 (async function checkUpdate() {
-  const version = 1.1
+  const version = 1.2
   const versionURL = 'https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/DataUsage/version'
   const updateURL = `jsbox://install?url=${encodeURI('https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/DataUsage/DataUsage.js')}`
   let resp = await $http.get(versionURL)
