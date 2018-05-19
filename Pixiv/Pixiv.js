@@ -9,7 +9,7 @@ $app.strings = {
   }
 }
 
-const version = 0.5
+const version = 0.6
 const versionURL = 'https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Pixiv/version'
 const updateURL = `jsbox://install?url=${encodeURI('https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Pixiv/Pixiv.js')}`
 const imgSearchURL = 'https://saucenao.com/search.php?db=999&url='
@@ -455,11 +455,13 @@ async function getImgURL(userID, type = 'member_illust') {
 async function searchCreator(url) {
   $ui.toast('正在查找作者...', 10)
   let resp = await $http.get(imgSearchURL + encodeURI(url))
+  $ui.toast('', 0)
   let creator = resp.data.match(/member\.php\?id=\d+/)
-  let illust = resp.data.match(/illust_id=\d+/)
+  let illust = resp.data.match(/www.*?illust_id=\d+/)
   if (!creator) return $ui.toast('作品过于冷门或非P站画师所作')
   let [creatorID, illustID] = [creator[0], illust[0]].map(i => i.match(/\d+/)[0])
   return {
+    illust,
     creatorID,
     illustID
   }
@@ -475,10 +477,26 @@ async function chooseToDownload() {
   $('infoText').text = ''
   let url = await upload(data)
   let {
+    illust,
     creatorID,
     illustID
   } = await searchCreator(url)
   getInfo(creatorID, illustID)
+
+  $ui.push({
+    props: {
+      title: "作品详情"
+    },
+    views: [{
+      type: "web",
+      props: {
+        id: "",
+        url: 'https://' + illust
+      },
+      layout: $layout.fill,
+      events: {}
+    }]
+  })
 }
 
 function setBackground() {
@@ -498,7 +516,4 @@ function setBackground() {
 }
 render()
 setBackground()
-$thread.background({
-  delay: 0,
-  handler: checkUpdate
-})
+checkUpdate()
