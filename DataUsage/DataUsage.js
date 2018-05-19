@@ -101,8 +101,9 @@ function render() {
   })
 }
 
-let usage = $cache.get("usage")
+let usage = $cache.get("usage") || []
 render();
+$ui.loading(true)
 usage = await getUsage();
 if (!usage) {
   if (await login(email, passwd) == 200) {
@@ -113,13 +114,14 @@ if (!usage) {
     $app.close();
   }
 }
+$ui.loading(false)
 $('cvs').runtimeValue().invoke('setNeedsDisplay')
 $('label').text = usage.map(i => i.legendText).join(" | ")
 $cache.set("usage", usage)
 
 if ($app.env !== $env.app) return;
 (async function checkUpdate() {
-  const version = 1.0
+  const version = 1.1
   const versionURL = 'https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/DataUsage/version'
   const updateURL = `jsbox://install?url=${encodeURI('https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/DataUsage/DataUsage.js')}`
   let resp = await $http.get(versionURL)
