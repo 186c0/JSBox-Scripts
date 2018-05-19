@@ -1,3 +1,4 @@
+$app.tips("首次使用请在脚本前两行填写邮箱和密码!")
 const email = "";
 const passwd = "";
 
