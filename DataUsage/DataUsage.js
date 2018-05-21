@@ -2,7 +2,6 @@ $app.tips("首次使用请在脚本前两行填写邮箱和密码!")
 const email = "";
 const passwd = "";
 
-
 //let site = 'https://xn--nos809b.com';
 let site = "https://www.cordcloud.me"
 let header = {
@@ -11,7 +10,7 @@ let header = {
 }
 let isCheckIn = false
 let checkIn = site + "/user/checkin"
-let colors = ['#e46367', '#e8b4b6', '#7dd1f0', '#ff6369', '#c2b5fa'];
+let colors = ['#e46367', '#e8b4b6', '#7dd1f0', '#ff6369', '#c2b5fa']
 
 async function login(email, passwd) {
   let resp = await $http.request({
@@ -33,6 +32,15 @@ async function getUsage() {
   let res = resp.data.match(/dataPoints:[\s\S]*?\]/);
   isCheckIn = /不能续命/.test(resp.data)
   return eval(`{${res}}`);
+}
+
+function setText(usage) {
+  let text = `■ ${usage.map(i => i.legendText).reverse().join(" ■ ")}`
+  let str = $objc("NSMutableAttributedString").invoke("alloc.initWithString", text)
+  for (let i = 0, j = 2; i < text.length; i++) {
+    if (text.charAt(i) === '■') str.invoke("addAttribute:value:range:", "NSColor", $color(colors[j--]), $range(i, 1))
+  }
+  $("label").runtimeValue().invoke("setAttributedText", str)
 }
 
 function render() {
@@ -84,7 +92,6 @@ function render() {
       {
         type: "label",
         props: {
-          text: usage.map(i => i.legendText).join(" | "),
           font: $font('ArialRoundedMTBold', 14),
           textColor: $color("#555"),
           autoFontSize: true,
@@ -101,33 +108,36 @@ function render() {
 }
 
 let usage = $cache.get("usage") || []
-render();
+render()
+setText(usage)
 $ui.loading(true)
-usage = await getUsage();
+usage = await getUsage()
 if (!usage) {
   if (await login(email, passwd) == 200) {
-    $ui.toast("登录成功");
-    usage = await getUsage();
+    $ui.toast("登录成功")
+    usage = await getUsage()
   } else {
-    $ui.toast("登录失败");
-    $app.close();
+    $ui.toast("登录失败")
+    $app.close()
   }
 }
 $ui.loading(false)
 $('cvs').runtimeValue().invoke('setNeedsDisplay')
-$('label').text = usage.map(i => i.legendText).join(" | ")
+setText(usage)
 $cache.set("usage", usage)
 
 if (!isCheckIn) {
   $http.post({
     url: checkIn,
     header: header
-  }).then(value => $ui.toast(value.data.msg))
+  }).then(value => $push.schedule({
+    title: value.data.msg
+  }))
 }
 
 if ($app.env !== $env.app) return;
 (async function checkUpdate() {
-  const version = 1.2
+  const version = 1.6
   const versionURL = 'https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/DataUsage/version'
   const updateURL = `jsbox://install?url=${encodeURI('https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/DataUsage/DataUsage.js')}`
   let resp = await $http.get(versionURL)
