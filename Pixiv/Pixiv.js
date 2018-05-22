@@ -30,7 +30,7 @@ const imgBlurView = {
     type: 'blur',
     props: {
       style: 1,
-      alpha: action ? 0.3 : 1
+      alpha: action ? 0 : 1
     },
     layout: $layout.fill
   }],
@@ -42,7 +42,7 @@ const dlBtn = {
     id: 'dlBtn',
     font: $font(14),
     title: '下载全部作品',
-    bgcolor: $rgba(0, 0, 0, 0.25),
+    bgcolor: $rgba(0, 0, 0, 0.25)
   },
   layout(make, view) {
     make.bottom.inset(25)
@@ -366,7 +366,7 @@ async function download(url) {
     // insertImg(0, action ? 0 : length, imgData)
     saveImg(imgData)
     $ui.toast(`已保存${n+1}张`)
-    if (n % 5 === 0) $('bgImage').data = imgData
+    if (n % 8 === 0) $('bgImage').data = imgData
     if (n < 5) cacheImgData('img' + n, imgData)
   }))
 }
