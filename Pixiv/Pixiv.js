@@ -1,15 +1,5 @@
-"use strict";
-$app.tips('使用方式:\n1.点击上方半透明矩形选择图片查找P站画师\n2.从Pixiv App上画师主页分享处运行或复制个人链接后打开本脚本下载全部作品')
-$app.strings = {
-  en: {
-    downloadAll: 'Download All'
-  },
-  'zh-Hans': {
-    downloadAll: '下载所有作品'
-  }
-}
-
-const version = 0.6
+"use strict"
+const version = 0.9
 const versionURL = 'https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Pixiv/version'
 const updateURL = `jsbox://install?url=${encodeURI('https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Pixiv/Pixiv.js')}`
 const imgSearchURL = 'https://saucenao.com/search.php?db=999&url='
@@ -17,26 +7,6 @@ const api = 'https://api.imjad.cn/pixiv/v1'
 const header = {
   Referer: 'https://www.pixiv.net'
 }
-
-class Range {
-  constructor(start, end, step) {
-      this.start = start
-      this.end = end
-      this.step = step
-    }
-    [Symbol.iterator]() {
-      let curr = this.start,
-        _this = this
-      return (function* () {
-        while (curr < _this.end) {
-          yield curr
-          curr += _this.step
-        }
-      })()
-    }
-}
-
-const range = (start, end, step = 1) => new Range(start, end, step)
 
 const {
   width,
@@ -48,6 +18,7 @@ let n = 0
 let action = $app.env === $env.action
 let text = ($context.text || $clipboard.text || '').match(/id=\d+/)
 let readyToDownID = text ? text[0].replace('id=', '') : null
+let readyToShowID;
 
 const imgBlurView = {
   type: 'image',
@@ -59,13 +30,31 @@ const imgBlurView = {
     type: 'blur',
     props: {
       style: 1,
-      alpha: 1
+      alpha: action ? 0 : 1
     },
     layout: $layout.fill
   }],
   layout: $layout.fill
 }
-
+const dlBtn = {
+  type: 'button',
+  props: {
+    id: 'dlBtn',
+    font: $font(14),
+    title: '下载全部作品',
+    bgcolor: $rgba(0, 0, 0, 0.25)
+  },
+  layout(make, view) {
+    make.bottom.inset(25)
+    make.left.right.inset(80)
+    make.height.equalTo(30)
+  },
+  events: {
+    tapped(sender) {
+      getImgURL(readyToDownID)
+    }
+  }
+}
 const illustDetailView = {
   type: 'view',
   props: {
@@ -98,7 +87,7 @@ const illustDetailView = {
       props: {
         id: 'btn',
         font: $font(14),
-        title: $l10n('downloadAll'),
+        title: '查看作品主页',
         bgcolor: $rgba(0, 0, 0, 0.3)
       },
       layout: (make, view) => {
@@ -107,23 +96,52 @@ const illustDetailView = {
         make.bottom.inset(10)
       },
       events: {
-        tapped: sender => {
+        tapped(sender) {
+          if (!readyToShowID) return
           $ui.push({
             props: {
-              title: ''
+              title: "作品详情"
+              // navBarHidden: true
             },
-            views: [{
-              type: 'view',
+            views: [imgBlurView, canvas, {
+              type: "web",
               props: {
-                id: ''
+                id: "",
+                bounces: false,
+                transparent: true,
+                showsProgress: false,
+                barColor: $color("clear"),
+                bgcolor: $color('clear'),
+                url: 'https://' + readyToShowID,
+                style: `.body-container,.work.details{background-color:rgba(0,0,0,0) !important;}.head-center{height:22px !important;}#geniee_overlay,#ad-header,#ad-comment-tag,.premium-lead-t-info-home-top,.premium-lead-t-footer{display:none !important;}`,
+                script: function () {
+                  let el = document.head.querySelector("meta[name='viewport']");
+                  el.content = "width=device-width, user-scalable=no";
+                }
               },
               layout: $layout.fill,
-              views: [imgBlurView, canvas, matrixView],
-              events: {}
+              events: {},
+              views: [dlBtn]
             }]
           })
-          getImgURL(readyToDownID)
         }
+        // tapped: sender => {
+        //   $ui.push({
+        //     props: {
+        //       title: ''
+        //     },
+        //     views: [{
+        //       type: 'view',
+        //       props: {
+        //         id: ''
+        //       },
+        //       layout: $layout.fill,
+        //       views: [imgBlurView, canvas, matrixView],
+        //       events: {}
+        //     }]
+        //   })
+        //   getImgURL(readyToDownID)
+        // }
       }
     },
     {
@@ -302,8 +320,8 @@ function render() {
   })
   $('baseView').add(imgBlurView)
   if (readyToDownID) {
-    $('baseView').add(canvas)
-    $('baseView').add(matrixView)
+    // $('baseView').add(canvas)
+    // $('baseView').add(matrixView)
     getImgURL(readyToDownID)
   } else {
     $('baseView').add(illustDetailView)
@@ -317,6 +335,12 @@ function cacheImgData(key, data) {
     handler(object) {
       // $ui.toast("已缓存" + key, 1)
     }
+  })
+}
+
+function saveImg(imgData) {
+  $photo.save({
+    data: imgData
   })
 }
 
@@ -335,14 +359,17 @@ async function download(url) {
   $ui.toast('正在请求数据...', 5)
   let resp = await $http.get(url)
   $ui.toast('正在下载图片...', 5)
+  let count = resp.data.response.length
   resp.data.response.forEach(i => downloadIllust(i.image_urls.large, resp => {
+    n++
     let imgData = resp.data
-    let length = $('matrix').data.length
-    insertImg(0, action ? 0 : length, imgData)
-    $photo.save({
-      data: imgData
-    })
-    if (length < 5) cacheImgData('img' + length, imgData)
+    // let length = $('matrix').data.length
+    // insertImg(0, action ? 0 : length, imgData)
+    saveImg(imgData)
+    $ui.toast(`已保存${n+1}张`)
+    if (n % 8 === 0) $('bgImage').data = imgData
+    if (n < 5) cacheImgData('img' + n, imgData)
+    if (count === n) $ui.toast("下载完毕!")
   }))
 }
 
@@ -481,22 +508,8 @@ async function chooseToDownload() {
     creatorID,
     illustID
   } = await searchCreator(url)
+  readyToShowID = illust
   getInfo(creatorID, illustID)
-
-  $ui.push({
-    props: {
-      title: "作品详情"
-    },
-    views: [{
-      type: "web",
-      props: {
-        id: "",
-        url: 'https://' + illust
-      },
-      layout: $layout.fill,
-      events: {}
-    }]
-  })
 }
 
 function setBackground() {
