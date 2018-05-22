@@ -359,6 +359,7 @@ async function download(url) {
   $ui.toast('正在请求数据...', 5)
   let resp = await $http.get(url)
   $ui.toast('正在下载图片...', 5)
+  let count = resp.data.response.length
   resp.data.response.forEach(i => downloadIllust(i.image_urls.large, resp => {
     n++
     let imgData = resp.data
@@ -368,6 +369,7 @@ async function download(url) {
     $ui.toast(`已保存${n+1}张`)
     if (n % 8 === 0) $('bgImage').data = imgData
     if (n < 5) cacheImgData('img' + n, imgData)
+    if (count === n) $ui.toast("下载完毕!")
   }))
 }
 
