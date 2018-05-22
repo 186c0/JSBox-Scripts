@@ -1,5 +1,4 @@
-"use strict";
-$app.tips('使用方式:\n1.点击上方半透明矩形选择图片查找P站画师\n2.从Pixiv App上画师主页分享处运行或复制个人链接后打开本脚本下载全部作品')
+"use strict"
 $app.strings = {
   en: {
     downloadAll: 'Download All'
@@ -9,7 +8,7 @@ $app.strings = {
   }
 }
 
-const version = 0.6
+const version = 0.8
 const versionURL = 'https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Pixiv/version'
 const updateURL = `jsbox://install?url=${encodeURI('https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Pixiv/Pixiv.js')}`
 const imgSearchURL = 'https://saucenao.com/search.php?db=999&url='
@@ -482,7 +481,7 @@ async function chooseToDownload() {
     illustID
   } = await searchCreator(url)
   getInfo(creatorID, illustID)
-
+  if (!illust) return
   $ui.push({
     props: {
       title: "作品详情"
@@ -491,7 +490,18 @@ async function chooseToDownload() {
       type: "web",
       props: {
         id: "",
-        url: 'https://' + illust
+        bounces: false,
+
+        url: 'https://' + illust,
+        script: function () {
+          let el = document.head.querySelector("meta[name='viewport']");
+          el.content = "width=device-width, user-scalable=no";
+          document.querySelector('#ad-header').style.display = 'none'
+          document.querySelector('#ad-comment-tag').style.display = 'none'
+          document.querySelector('.premium-lead-t-info-home-top').style.display = 'none'
+          document.querySelector('.premium-lead-t-footer').style.display = 'none'
+          document.querySelector('#geniee_overlay').style.display = 'none';
+        }
       },
       layout: $layout.fill,
       events: {}
