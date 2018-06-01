@@ -5,7 +5,6 @@ let mb = $objc("NSBundle").invoke('mainBundle')
 let path = mb.invoke('bundlePath')
 let NSFileManager = $objc("NSFileManager").invoke('defaultManager')
 let NSDirectoryEnumerator = $objc("NSDirectoryEnumerator")
-let NSData = $objc("NSData").invoke('alloc.init')
 let dir = NSFileManager.invoke('enumeratorAtPath:', path)
 
 while (dir.invoke('nextObject')) {

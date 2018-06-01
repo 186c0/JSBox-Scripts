@@ -1,4 +1,4 @@
-"use strict"
+'use strict'
 const version = 0.9
 const versionURL = 'https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Pixiv/version'
 const updateURL = `jsbox://install?url=${encodeURI('https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/Pixiv/Pixiv.js')}`
@@ -18,7 +18,7 @@ let n = 0
 let action = $app.env === $env.action
 let text = ($context.text || $clipboard.text || '').match(/id=\d+/)
 let readyToDownID = text ? text[0].replace('id=', '') : null
-let readyToShowID;
+let readyToShowID
 
 const imgBlurView = {
   type: 'image',
@@ -91,7 +91,7 @@ const illustDetailView = {
         bgcolor: $rgba(0, 0, 0, 0.3)
       },
       layout: (make, view) => {
-        let v = $('illustImg')
+        // let v = $('illustImg')
         make.left.right.inset(60)
         make.bottom.inset(10)
       },
@@ -100,23 +100,23 @@ const illustDetailView = {
           if (!readyToShowID) return
           $ui.push({
             props: {
-              title: "作品详情"
+              title: '作品详情'
               // navBarHidden: true
             },
             views: [imgBlurView, canvas, {
-              type: "web",
+              type: 'web',
               props: {
-                id: "",
+                id: '',
                 bounces: false,
                 transparent: true,
                 showsProgress: false,
-                barColor: $color("clear"),
+                barColor: $color('clear'),
                 bgcolor: $color('clear'),
                 url: 'https://' + readyToShowID,
                 style: `.body-container,.work.details{background-color:rgba(0,0,0,0) !important;}.head-center{height:22px !important;}#geniee_overlay,#ad-header,#ad-comment-tag,.premium-lead-t-info-home-top,.premium-lead-t-footer{display:none !important;}`,
                 script: function () {
-                  let el = document.head.querySelector("meta[name='viewport']");
-                  el.content = "width=device-width, user-scalable=no";
+                  let el = document.head.querySelector("meta[name='viewport']")
+                  el.content = 'width=device-width, user-scalable=no'
                 }
               },
               layout: $layout.fill,
@@ -241,9 +241,9 @@ const matrixView = {
 }
 
 const canvas = {
-  type: "canvas",
+  type: 'canvas',
   props: {
-    bgcolor: $color("clear")
+    bgcolor: $color('clear')
   },
   layout: $layout.fill,
   events: {
@@ -366,10 +366,10 @@ async function download(url) {
     // let length = $('matrix').data.length
     // insertImg(0, action ? 0 : length, imgData)
     saveImg(imgData)
-    $ui.toast(`已保存${n+1}张`)
+    $ui.toast(`已保存${n + 1}张`)
     if (n % 8 === 0) $('bgImage').data = imgData
     if (n < 5) cacheImgData('img' + n, imgData)
-    if (count === n) $ui.toast("下载完毕!")
+    if (count === n) $ui.toast('下载完毕!')
   }))
 }
 

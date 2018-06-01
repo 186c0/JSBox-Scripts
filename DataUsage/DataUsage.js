@@ -30,7 +30,7 @@ async function login(email, passwd) {
 async function getUsage() {
   let resp = await $http.get(site + "/user");
   let res = resp.data.match(/dataPoints:[\s\S]*?\]/);
-  isCheckIn = /不能续命/.test(resp.data)
+  isCheckIn = /不能续命||不能签到/.test(resp.data)
   return eval(`{${res}}`);
 }
 
