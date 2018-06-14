@@ -135,8 +135,8 @@ if (!isCheckIn) {
   }))
 }
 
-if ($app.env !== $env.app) return;
 (async function checkUpdate() {
+  if ($app.env !== $env.app) return;
   const version = 1.6
   const versionURL = 'https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/DataUsage/version'
   const updateURL = `jsbox://install?url=${encodeURI('https://raw.githubusercontent.com/186c0/JSBox-Scripts/master/DataUsage/DataUsage.js')}`
