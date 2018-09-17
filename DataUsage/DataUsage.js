@@ -19,10 +19,7 @@ async function login(email, passwd) {
     header: {
       "Content-Type": "application/x-www-form-urlencoded"
     },
-    body: {
-      "email": email,
-      "passwd": passwd
-    }
+    body: { email, passwd }
   })
   return resp.response.statusCode;
 }
