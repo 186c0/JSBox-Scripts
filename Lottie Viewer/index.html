@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title></title>
+</head>
+<style>
+    body,
+    html {
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+    }
+
+    #svgContainer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        margin: auto;
+        width: 375px;
+        height: 375px;
+        background-color: #fff;
+    }
+</style>
+</head>
+
+<body>
+    <div id="svgContainer"></div>
+    <script src="https://www.lottiefiles.com/js/lottie.min.js"></script>
+    <script>
+        var animationData = ${json}
+        var svgContainer = document.getElementById("svgContainer")
+        var animItem = bodymovin.loadAnimation({ wrapper: svgContainer, animType: "svg", loop: !0, animationData: animationData })
+        setTimeout(() => {
+            let duration = animItem.getDuration(true)
+            $notify('getDuration', duration)
+        }, 0)
+    </script>
+</body>
+
+</html>
