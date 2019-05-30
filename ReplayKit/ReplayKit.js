@@ -2,14 +2,14 @@
 // 用法:运行开始录屏, 再次运行结束录屏，中途摇晃设备快速结束录屏
 const W = $device.info.screen.width
 const H = $device.info.screen.height
-let NSBundle = $objc('NSBundle')
+const NSBundle = $objc('NSBundle')
 NSBundle.invoke('bundleWithPath:', '/System/Library/Frameworks/ReplayKit.framework').invoke('load')
-let rootViewController = $objc('UIApplication').invoke('sharedApplication').invoke('keyWindow').invoke('rootViewController')
-let topNavigationController = () => rootViewController.invoke('topViewController.navigationController')
-let RPScreenRecorder = $objc('RPScreenRecorder')
-let recorder = RPScreenRecorder.invoke('sharedRecorder')
-let isAvailable = recorder.invoke('isAvailable')
-let isRecording = () => recorder.invoke('isRecording')
+const rootViewController = $objc('UIApplication').invoke('sharedApplication').invoke('keyWindow').invoke('rootViewController')
+const topNavigationController = () => rootViewController.invoke('topViewController.navigationController')
+const RPScreenRecorder = $objc('RPScreenRecorder')
+const recorder = RPScreenRecorder.invoke('sharedRecorder')
+const isAvailable = recorder.invoke('isAvailable')
+const isRecording = () => recorder.invoke('isRecording')
 // let volume = $system.volume;
 
 
@@ -34,8 +34,9 @@ function start() {
 
 function stop() {
   $ui.toast('停止录制')
-  let handler = $block('void, RPPreviewViewController *, NSError *', function (vc, error) {
-    let btn = {
+  // ^(RPPreviewViewController * _Nullable previewViewController, NSError * _Nullable error)
+  const handler = $block('void, RPPreviewViewController *, NSError *', function (vc, error) {
+    const btn = {
       type: 'button',
       props: {
         bgcolor: $rgba(255, 255, 255, 0.001)
@@ -59,18 +60,3 @@ function main() {
 }
 
 main()
-
-// $app.tips('按音量 + 键开始录屏，音量 - 键结束录屏');
-// let timer = $timer.schedule({
-//     interval: 1,
-//     handler: () => {
-//         if ($system.volume > volume) {
-//             start();
-//         } else if ($system.volume < volume) {
-//             timer.invalidate()
-//             stop();
-//         }
-//     }
-// });
-
-// ^(RPPreviewViewController * _Nullable previewViewController, NSError * _Nullable error)
